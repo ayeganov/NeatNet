@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "genes.h"
+#include "utils.h"
 
 class Innovation;
 
@@ -24,10 +25,13 @@ private:
     double m_adjusted_fitness;
     double m_amount_to_spawn;
 
-    int m_num_inputs;
-    int m_num_outputs;
+    std::size_t m_num_inputs;
+    std::size_t m_num_outputs;
 
     int m_species_id;
+
+    Utils::Random<std::knuth_b> m_random;
+
 
     /**
      * Returns true if the given link is already part of the genome
@@ -46,12 +50,12 @@ private:
 public:
     Genome();
 
-    Genome(int id, int num_inputs, int num_outputs);
+    Genome(int id, std::size_t num_inputs, std::size_t num_outputs);
     Genome(int id,
            std::vector<NeuronGene> neurons,
            std::vector<LinkGene> links,
-           int num_inputs,
-           int num_outputs);
+           std::size_t num_inputs,
+           std::size_t num_outputs);
 
 
     ~Genome();
@@ -80,6 +84,15 @@ public:
         return m_neuron_genes;
     }
 
+    std::size_t NumGenes() const
+    {
+        return m_neuron_genes.size();
+    }
+
+    const std::vector<LinkGene>& NeuronLinks() const
+    {
+        return m_link_genes;
+    }
 };
 
 
