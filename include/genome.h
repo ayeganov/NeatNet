@@ -10,9 +10,9 @@
 #include <vector>
 
 #include "genes.h"
+#include "innovation.h"
 #include "utils.h"
 
-class Innovation;
 
 class Genome
 {
@@ -35,10 +35,10 @@ private:
 
     /**
      * Returns true if the given link is already part of the genome
-     * @param neuron_from - input neuron
-     * @param neuron_to - neuron that will receive the output
+     * @param neuron_from_id - from neuron id aka neuron providing input
+     * @param neuron_to_id - neuron that will receive the output
      */
-    bool IsDuplicateLink(int neuron_from, int neuron_to);
+    bool IsExistingLink(int neuron_from_id, int neuron_to_id);
 
     /**
      * Given neuron id finds the index of said neuron in the m_neuron_genes
@@ -46,6 +46,9 @@ private:
      * @param neuron_id - id of the neuron to find
      */
     int GetNeuronIndex(int neuron_id);
+
+    bool FindNonRecurrentNeuron(int& neuron_id_from, int& neuron_id_to, double prob, int num_trys);
+    bool FindUnlinkedNeurons(int& neuron_id_from, int& neuron_id_to, int num_trys);
 
 public:
     Genome();
@@ -65,7 +68,9 @@ public:
 
     void AddLink(double mutation_prob,
                  double recurrent_prob,
-                 Innovation& innovation);
+                 InnovationDB& innovation,
+                 int num_trys_recurrent,
+                 int num_trys_add_link);
 
     void AddNeuron(double mutation_prob,
                    Innovation& innovation);
