@@ -6,6 +6,9 @@
 
 #include "../include/genome.h"
 
+namespace neat
+{
+
 Genome::Genome(int id, std::size_t inputs, std::size_t outputs):m_genome_id(id),
                                                m_fitness(0),
                                                m_adjusted_fitness(0),
@@ -200,4 +203,6 @@ bool Genome::IsExistingLink(int neuron_from_id, int neuron_to_id)
             return link.FromNeuronID == neuron_from_id
                 && link.ToNeuronID == neuron_to_id;
         });
+}
+
 }

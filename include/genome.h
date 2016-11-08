@@ -14,6 +14,9 @@
 #include "utils.h"
 
 
+namespace neat
+{
+
 class Genome
 {
 private:
@@ -100,5 +103,6 @@ public:
     }
 };
 
+}
 
 #endif

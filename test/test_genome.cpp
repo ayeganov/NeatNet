@@ -17,7 +17,7 @@ SCENARIO("Genome gets initialized with correct number of neurons", "[genome]")
 
         WHEN("Genome is created")
         {
-            Genome g(ID, inputs, outputs);
+            neat::Genome g(ID, inputs, outputs);
 
             THEN("It contains correct number of neurons")
             {

@@ -2,6 +2,9 @@
 #include "../include/cpplinq.hpp"
 
 
+namespace neat
+{
+
 int InnovationDB::GetInnovationId(int neuron_id_from, int neuron_id_to, InnovationType type)
 {
     auto result = cpplinq::from(m_innovations)
@@ -13,6 +16,36 @@ int InnovationDB::GetInnovationId(int neuron_id_from, int neuron_id_to, Innovati
         })
         >> cpplinq::first_or_default();
 
-    // TODO: Figure out the first_or_default behavior
-    return result.InnovationID;
+    return result.Type == InnovationType::NONE ? -1 : result.InnovationID;
+}
+
+
+int InnovationDB::AddNewInnovation(int neuron_id1, int neuron_id2, InnovationType type)
+{
+    return 0;
+}
+
+
+std::string to_string(InnovationType type)
+{
+    switch(type)
+    {
+        case InnovationType::NEW_NEURON:
+            return "NEW_NEURON";
+        case InnovationType::NEW_LINK:
+            return "NEW_LINK";
+        default:
+            return "NONE";
+    }
+}
+
+
+std::string to_string(const Innovation& innov)
+{
+    using std::to_string;
+    return "Type: " + to_string(innov.Type) + ", ID: " + to_string(innov.InnovationID)\
+        + ", From: " + to_string(innov.NeuronFromID)\
+        + ", To: " + to_string(innov.NeuronToID);
+}
+
 }
