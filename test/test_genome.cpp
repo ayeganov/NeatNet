@@ -2,6 +2,7 @@
 #include "../include/catch.hpp"
 
 #include <iostream>
+#include <vector>
 
 #include "../include/cpplinq.hpp"
 
@@ -35,6 +36,22 @@ SCENARIO("Genome gets initialized with correct number of neurons", "[genome]")
                     REQUIRE(link.Weight <= 1.0);
                 }
             }
+        }
+    }
+
+    GIVEN("BLKAJDF")
+    {
+        std::vector<int> v{1,2,3};
+        WHEN("BLKJAKLSDFJ")
+        {
+            int result = cpplinq::from(v)
+            >> cpplinq::select([](int i)
+                {
+                std::cout << "i = " << i << std::endl;
+                    return i * i;
+                })
+            >> cpplinq::first_or_default([](int val) { return val > 2; });
+            std::cout << "And result is " << result << std::endl;
         }
     }
 }

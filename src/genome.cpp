@@ -87,6 +87,105 @@ int Genome::GetNeuronIndex(int neuron_id)
     return -1;
 }
 
+void Genome::AddNeuron(double mutation_prob,
+                       InnovationDB& inno_db,
+                       int num_trys_to_find_old_link)
+{
+    if(m_random.RandomDouble() < mutation_prob)
+    {
+        return;
+    }
+
+    auto find_link_idx = [&](int upper_bound)
+    {
+        int link_idx = m_random.RandomClamped(0, upper_bound);
+        const LinkGene& link = m_link_genes[link_idx];
+        const NeuronGene& neuron = m_neuron_genes[GetNeuronIndex(link.FromNeuronID)];
+        if(link.IsEnabled &&
+            !link.IsRecurrent &&
+            neuron.Type != NeuronType::BIAS)
+        {
+            return link_idx;
+        }
+        else
+        {
+            return -1;
+        }
+    };
+
+    int chosen_link = -1;
+    // if the genome is small then prefer older links to avoid a chaining
+    // effect.
+    const int SizeThreshold = m_num_inputs + m_num_outputs + 5;
+    if(m_neuron_genes.size() < SizeThreshold)
+    {
+        int upper_bound = m_neuron_genes.size() - 1 - (int)std::sqrt(m_neuron_genes.size());
+        while(num_trys_to_find_old_link--)
+        {
+            chosen_link = find_link_idx(upper_bound);
+        }
+        // failed to find a good old link
+        if(chosen_link == -1) return;
+    }
+    else
+    {
+        while(chosen_link == -1)
+        {
+            chosen_link = find_link_idx(m_neuron_genes.size());
+        }
+    }
+
+    auto& link = m_link_genes[chosen_link];
+    // disable the link
+    link.IsEnabled = false;
+    double original_weight = link.Weight;
+
+    // identify connected neurons
+    int from = link.FromNeuronID;
+    int to = link.ToNeuronID;
+
+    // calculate the depth and width of the new neuron. We can use the depth to
+    // see if the link feeds backwards or forwards
+    auto& from_neuron = m_neuron_genes[GetNeuronIndex(from)];
+    auto& to_neuron =  m_neuron_genes[GetNeuronIndex(to)];
+    double new_depth = (from_neuron.SplitY + to_neuron.SplitY) / 2;
+    double new_width = (from_neuron.SplitX + to_neuron.SplitX) / 2;
+
+    auto inno_id = inno_db.GetInnovationId(from, to, InnovationType::NEW_NEURON);
+
+  /**
+   * It is possible for NEAT to repeatedly do the following:
+   * 1. Find a link. Lets say we choose link 1 to 5
+   * 2. Disable the link,
+   * 3. Add a new neuron and two new links
+   * 4. The link disabled in Step 2 maybe re-enabled when this genome
+   * is recombined with a genome that has that link enabled.
+   * 5  etc etc
+   *
+   * Therefore, this function must check to see if a neuron ID is already
+   * being used. If it is then the function creates a new innovation
+   * for the neuron.
+   */
+    if(inno_id >= 0)
+    {
+        int neuron_id = inno_db.GetNeuronID(inno_id);
+        auto neuron_id_match = [neuron_id](const NeuronGene& neuron)
+        {
+            return neuron.ID == neuron_id;
+        };
+
+        if(cpplinq::from(m_neuron_genes) >> cpplinq::any(neuron_id_match))
+        {
+            inno_id = -1;
+        }
+    }
+
+    if(inno_id < 0)
+    {
+        //TODO: Continue here
+    }
+}
+
 void Genome::AddLink(double mutation_prob,
                      double recurrent_prob,
                      InnovationDB& innovationDB,

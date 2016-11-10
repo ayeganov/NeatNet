@@ -76,7 +76,8 @@ public:
                  int num_trys_add_link);
 
     void AddNeuron(double mutation_prob,
-                   Innovation& innovation);
+                   InnovationDB& innovation,
+                   int num_trys_to_find_old_link);
 
     void MutateWeights(double mutation_prob,
                        double prob_new_weight,

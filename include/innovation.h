@@ -37,7 +37,14 @@ struct Innovation
     {
     }
 
-
+    Innovation(InnovationType type,
+               int id,
+               int neuron_from_id,
+               int neuron_to_id) : Type(type),
+                                   InnovationID(id),
+                                   NeuronFromID(neuron_from_id),
+                                   NeuronToID(neuron_to_id)
+    {}
 };
 
 
@@ -59,6 +66,7 @@ public:
     {}
     int GetInnovationId(int neuron_id_from, int neuron_id_to, InnovationType type);
     int AddNewInnovation(int neuron_id1, int neuron_id2, InnovationType type);
+    int GetNeuronID(int innovation_id) const;
 
     const std::vector<Innovation>& Innovations() const
     {

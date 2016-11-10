@@ -13,32 +13,26 @@ SCENARIO("InnovationDB AddNewInnovation [innovation]")
     {
         neat::InnovationDB inno_db;
 
-        WHEN("Genome is created")
+        WHEN("DB is queried")
         {
-            std::vector<neat::Innovation> innovations;
-            auto result = cpplinq::from(innovations)
+            auto result = cpplinq::from(inno_db.Innovations())
                 >> cpplinq::first_or_default();
-            std::cout << to_string(result) << std::endl;
+            REQUIRE(result.Type == neat::InnovationType::NONE);
         }
 
-//            Genome g(ID, inputs, outputs);
-//
-//            THEN("It contains correct number of neurons")
-//            {
-//                auto neurons = g.NeuronGenes();
-//                // add 1 for bias neuron
-//                REQUIRE(neurons.size() == inputs + outputs + 1);
-//            }
-//
-//            THEN("Neuron weights never exceed -1 and 1 range")
-//            {
-//                auto links = g.NeuronLinks();
-//                for(auto link : links)
-//                {
-//                    REQUIRE(link.Weight >= -1.0);
-//                    REQUIRE(link.Weight <= 1.0);
-//                }
-//            }
-//        }
+        WHEN("Innovation is added")
+        {
+            int from_id = 1;
+            int to_id = 2;
+            int innovation_id = 1;
+            inno_db.AddNewInnovation(from_id, to_id, neat::InnovationType::NEW_LINK);
+            auto result = cpplinq::from(inno_db.Innovations())
+                >> cpplinq::first_or_default();
+
+            REQUIRE(result.Type == neat::InnovationType::NEW_LINK);
+            REQUIRE(result.InnovationID == innovation_id);
+            REQUIRE(result.NeuronFromID == from_id);
+            REQUIRE(result.NeuronToID == to_id);
+        }
     }
 }
