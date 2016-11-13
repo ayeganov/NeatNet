@@ -75,7 +75,7 @@ Genome::~Genome()
 }
 
 
-int Genome::GetNeuronIndex(int neuron_id)
+int Genome::GetNeuronIndex(NeuronID neuron_id)
 {
     for(int i = 0; i < m_neuron_genes.size(); ++i)
     {
@@ -141,8 +141,8 @@ void Genome::AddNeuron(double mutation_prob,
     double original_weight = link.Weight;
 
     // identify connected neurons
-    int from = link.FromNeuronID;
-    int to = link.ToNeuronID;
+    NeuronID from = link.FromNeuronID;
+    NeuronID to = link.ToNeuronID;
 
     // calculate the depth and width of the new neuron. We can use the depth to
     // see if the link feeds backwards or forwards
@@ -168,7 +168,7 @@ void Genome::AddNeuron(double mutation_prob,
    */
     if(inno_id >= 0)
     {
-        int neuron_id = inno_db.GetNeuronID(inno_id);
+        auto neuron_id = inno_db.GetNeuronID(inno_id);
         auto neuron_id_match = [neuron_id](const NeuronGene& neuron)
         {
             return neuron.ID == neuron_id;
@@ -182,7 +182,49 @@ void Genome::AddNeuron(double mutation_prob,
 
     if(inno_id < 0)
     {
-        //TODO: Continue here
+        NeuronID neuron_id = inno_db.AddNeuronInnovation(from_neuron.ID,
+                                                         to_neuron.ID,
+                                                         NeuronType::HIDDEN,
+                                                         new_width,
+                                                         new_depth);
+        NeuronGene ng(NeuronType::HIDDEN,
+                      neuron_id,
+                      new_depth,
+                      new_width);
+        m_neuron_genes.push_back(ng);
+
+        InnovationID link_id = inno_db.AddLinkInnovation(from, neuron_id);
+        LinkGene bottom_link(from,
+                             neuron_id,
+                             m_random.RandomDouble(),
+                             true,
+                             link_id);
+        m_link_genes.push_back(bottom_link);
+
+        link_id = inno_db.AddLinkInnovation(neuron_id, to);
+        LinkGene top_link(neuron_id,
+                          to,
+                          m_random.RandomDouble(),
+                          true,
+                          link_id);
+        m_link_genes.push_back(top_link);
+
+    }
+    else
+    {
+        NeuronID neuron_id = inno_db.GetNeuronID(inno_id);
+        InnovationID link_bottom_id = inno_db.GetInnovationId(from, neuron_id, InnovationType::NEW_LINK);
+        InnovationID link_top_id = inno_db.GetInnovationId(neuron_id, to, InnovationType::NEW_LINK);
+
+        assert(link_bottom_id >= 0 && link_top_id >= 0);
+
+        LinkGene link_bottom(from, neuron_id, 1.0, true, link_bottom_id);
+        LinkGene link_top(neuron_id, to, original_weight, true, link_top_id);
+        m_link_genes.push_back(link_bottom);
+        m_link_genes.push_back(link_top);
+
+        NeuronGene new_neuron(NeuronType::HIDDEN, neuron_id, new_depth, new_width);
+        m_neuron_genes.push_back(new_neuron);
     }
 }
 
@@ -197,8 +239,8 @@ void Genome::AddLink(double mutation_prob,
         return;
     }
 
-    int neuron_id_from = -1;
-    int neuron_id_to = -1;
+    NeuronID neuron_id_from = -1;
+    NeuronID neuron_id_to = -1;
 
     // if unable to find any suitable neurons then return
     if(!FindNonRecurrentNeuron(neuron_id_from, neuron_id_to, recurrent_prob, num_trys_recurrent) &&
@@ -216,11 +258,11 @@ void Genome::AddLink(double mutation_prob,
             auto& neuron2 = m_neuron_genes[GetNeuronIndex(neuron_id2)];
             return neuron1.SplitY > neuron2.SplitY;
         };
-        int innovation_id = innovationDB.GetInnovationId(neuron_id_from, neuron_id_to, InnovationType::NEW_LINK);
+        InnovationID innovation_id = innovationDB.GetInnovationId(neuron_id_from, neuron_id_to, InnovationType::NEW_LINK);
         bool is_recurrent = is_recurrent_link(neuron_id_from, neuron_id_to);
 
         innovation_id = innovation_id < 0
-            ? innovationDB.AddNewInnovation(neuron_id_from, neuron_id_to, InnovationType::NEW_LINK)
+            ? innovationDB.AddLinkInnovation(neuron_id_from, neuron_id_to)
             : innovation_id;
 
         LinkGene new_link(neuron_id_from,
@@ -233,7 +275,7 @@ void Genome::AddLink(double mutation_prob,
     }
 }
 
-bool Genome::FindNonRecurrentNeuron(int& neuron_id_from, int& neuron_id_to, double prob, int num_trys)
+bool Genome::FindNonRecurrentNeuron(NeuronID& neuron_id_from, NeuronID& neuron_id_to, double prob, int num_trys)
 {
     bool result = false;
     auto is_acceptable = [&](NeuronGene& neuron)
@@ -263,7 +305,7 @@ bool Genome::FindNonRecurrentNeuron(int& neuron_id_from, int& neuron_id_to, doub
     return result;
 }
 
-bool Genome::FindUnlinkedNeurons(int& neuron_id_from, int& neuron_id_to, int num_trys)
+bool Genome::FindUnlinkedNeurons(NeuronID& neuron_id_from, NeuronID& neuron_id_to, int num_trys)
 {
     bool result = false;
     auto is_acceptable = [&](NeuronGene& neuron_from, NeuronGene& neuron_to)
@@ -294,7 +336,7 @@ bool Genome::FindUnlinkedNeurons(int& neuron_id_from, int& neuron_id_to, int num
     return result;
 }
 
-bool Genome::IsExistingLink(int neuron_from_id, int neuron_to_id)
+bool Genome::IsExistingLink(NeuronID neuron_from_id, NeuronID neuron_to_id)
 {
     return cpplinq::from(m_link_genes)
         >> cpplinq::any([&](const LinkGene& link)

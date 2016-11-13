@@ -21,27 +21,27 @@ enum class InnovationType
 struct Innovation
 {
     InnovationType Type;
-    int InnovationID;
-    int NeuronFromID;
-    int NeuronToID;
-    int NeuronID;
+    InnovationID ID;
+    NeuronID NeuronFromID;
+    NeuronID NeuronToID;
+    NeuronID NewNeuronID;
     NeuronType Neuron_Type;
     double SplitX, SplitY;
 
     Innovation() : Type(InnovationType::NONE),
-                   InnovationID(-1),
+                   ID(-1),
                    NeuronFromID(-1),
                    NeuronToID(-1),
-                   NeuronID(-1),
+                   NewNeuronID(-1),
                    Neuron_Type(NeuronType::NONE)
     {
     }
 
     Innovation(InnovationType type,
-               int id,
-               int neuron_from_id,
-               int neuron_to_id) : Type(type),
-                                   InnovationID(id),
+               InnovationID id,
+               NeuronID neuron_from_id,
+               NeuronID neuron_to_id) : Type(type),
+                                   ID(id),
                                    NeuronFromID(neuron_from_id),
                                    NeuronToID(neuron_to_id)
     {}
@@ -64,14 +64,23 @@ public:
                      m_next_neuron_id(1),
                      m_next_innovation_id(1)
     {}
-    int GetInnovationId(int neuron_id_from, int neuron_id_to, InnovationType type);
-    int AddNewInnovation(int neuron_id1, int neuron_id2, InnovationType type);
-    int GetNeuronID(int innovation_id) const;
+
+    InnovationID GetInnovationId(NeuronID neuron_id_from, NeuronID neuron_id_to, InnovationType type);
+    InnovationID AddLinkInnovation(NeuronID neuron_id1, NeuronID neuron_id2);
+    NeuronID AddNeuronInnovation(NeuronID neuron_id1,
+                                 NeuronID neuron_id2,
+                                 NeuronType neuron_type,
+                                 double width,
+                                 double depth);
+
+    NeuronID GetNeuronID(InnovationID innovation_id) const;
 
     const std::vector<Innovation>& Innovations() const
     {
         return m_innovations;
     }
+
+    InnovationID NextInnovationID() { return m_next_innovation_id++; }
 };
 }
 #endif

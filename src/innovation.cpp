@@ -5,7 +5,7 @@
 namespace neat
 {
 
-int InnovationDB::GetInnovationId(int neuron_id_from, int neuron_id_to, InnovationType type)
+InnovationID InnovationDB::GetInnovationId(NeuronID neuron_id_from, NeuronID neuron_id_to, InnovationType type)
 {
     auto result = cpplinq::from(m_innovations)
         >> cpplinq::where([&](const Innovation& innovation)
@@ -16,21 +16,26 @@ int InnovationDB::GetInnovationId(int neuron_id_from, int neuron_id_to, Innovati
         })
         >> cpplinq::first_or_default();
 
-    return result.Type == InnovationType::NONE ? -1 : result.InnovationID;
+    return result.Type == InnovationType::NONE ? InnovationID(-1) : result.ID;
 }
 
 
-int InnovationDB::AddNewInnovation(int neuron_from_id, int neuron_to_id, InnovationType type)
+InnovationID InnovationDB::AddLinkInnovation(NeuronID neuron_from_id, NeuronID neuron_to_id)
 {
-    Innovation new_innovation(type, m_next_innovation_id, neuron_from_id, neuron_to_id);
-    if(type == InnovationType::NEW_NEURON)
-    {
-        new_innovation.NeuronID = m_next_neuron_id;
-        ++m_next_neuron_id;
-    }
+    Innovation new_innovation(InnovationType::NEW_LINK, m_next_innovation_id, neuron_from_id, neuron_to_id);
     m_innovations.push_back(new_innovation);
-
     return m_next_innovation_id++;
+}
+
+NeuronID InnovationDB::AddNeuronInnovation(NeuronID neuron_from, NeuronID neuron_to, NeuronType neuron_type, double splix_x, double split_y)
+{
+    Innovation new_innovation(InnovationType::NEW_NEURON, m_next_innovation_id++, neuron_from, neuron_to);
+    new_innovation.NewNeuronID = m_next_neuron_id++;
+    new_innovation.Neuron_Type = neuron_type;
+    new_innovation.SplitX = splix_x;
+    new_innovation.SplitY = split_y;
+    m_innovations.push_back(new_innovation);
+    return new_innovation.NewNeuronID;
 }
 
 
@@ -51,20 +56,20 @@ std::string to_string(InnovationType type)
 std::string to_string(const Innovation& innov)
 {
     using std::to_string;
-    return "Type: " + to_string(innov.Type) + ", ID: " + to_string(innov.InnovationID)\
+    return "Type: " + to_string(innov.Type) + ", ID: " + to_string(innov.ID)\
         + ", From: " + to_string(innov.NeuronFromID)\
         + ", To: " + to_string(innov.NeuronToID);
 }
 
 
-int InnovationDB::GetNeuronID(int innovation_id) const
+NeuronID InnovationDB::GetNeuronID(InnovationID innovation_id) const
 {
     Innovation innovation = cpplinq::from(m_innovations)
-        >> cpplinq::first([&](Innovation& inno)
+        >> cpplinq::first([&](const Innovation& inno)
             {
-                return inno.InnovationID == innovation_id;
+                return inno.ID == innovation_id;
             });
-    return innovation.NeuronID;
+    return innovation.NewNeuronID;
 }
 
 }

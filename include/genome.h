@@ -41,17 +41,17 @@ private:
      * @param neuron_from_id - from neuron id aka neuron providing input
      * @param neuron_to_id - neuron that will receive the output
      */
-    bool IsExistingLink(int neuron_from_id, int neuron_to_id);
+    bool IsExistingLink(NeuronID neuron_from_id, NeuronID neuron_to_id);
 
     /**
      * Given neuron id finds the index of said neuron in the m_neuron_genes
      * vector.
      * @param neuron_id - id of the neuron to find
      */
-    int GetNeuronIndex(int neuron_id);
+    int GetNeuronIndex(NeuronID neuron_id);
 
-    bool FindNonRecurrentNeuron(int& neuron_id_from, int& neuron_id_to, double prob, int num_trys);
-    bool FindUnlinkedNeurons(int& neuron_id_from, int& neuron_id_to, int num_trys);
+    bool FindNonRecurrentNeuron(NeuronID& neuron_id_from, NeuronID& neuron_id_to, double prob, int num_trys);
+    bool FindUnlinkedNeurons(NeuronID& neuron_id_from, NeuronID& neuron_id_to, int num_trys);
 
 public:
     Genome();

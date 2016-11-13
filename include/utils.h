@@ -46,5 +46,35 @@ public:
         return unif_double(m_rand_engine);
     }
 };
+
+
+template <typename T, typename Meaning>
+class IDType
+{
+public:
+    IDType() {}
+
+    // implicit conversion
+    IDType(T value) : m_id(value) {}
+
+    inline operator T () const { return m_id; }
+    inline friend bool operator==(IDType<T, Meaning> const& lhs, IDType<T, Meaning> const& rhs)
+    {
+        return lhs.m_id == rhs.m_id;
+    }
+
+    inline IDType<T, Meaning>& operator=(const IDType<T, Meaning>& other)
+    {
+        if(m_id != other.m_id)
+        {
+            m_id = other.m_id;
+        }
+        return *this;
+    }
+
+private:
+    T m_id;
+};
+
 }
 #endif

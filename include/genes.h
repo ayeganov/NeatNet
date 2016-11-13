@@ -8,6 +8,22 @@
  * structures are composed together to create a genome.
  */
 
+#include "utils.h"
+
+namespace neat
+{
+
+namespace internal
+{
+    struct NeuronIDTag {};
+    struct LinkIDTag {};
+    struct InnovationIDTag {};
+}
+
+typedef Utils::IDType<int, internal::NeuronIDTag> NeuronID;
+typedef Utils::IDType<int, internal::InnovationIDTag> InnovationID;
+
+
 enum class NeuronType
 {
     INPUT,
@@ -24,13 +40,13 @@ enum class NeuronType
 struct NeuronGene
 {
     NeuronType Type;
-    int ID;
+    NeuronID ID;
     bool IsRecurrent;
     double ActivationResponse;
     double SplitY, SplitX;
 
     NeuronGene(NeuronType type,
-               int id,
+               NeuronID id,
                double y,
                double x,
                bool recurrent=false)
@@ -38,7 +54,8 @@ struct NeuronGene
       ID(id),
       SplitY(y),
       SplitX(x),
-      ActivationResponse(1)
+      ActivationResponse(1),
+      IsRecurrent(recurrent)
     {}
 };
 
@@ -48,23 +65,23 @@ struct NeuronGene
  */
 struct LinkGene
 {
-    int FromNeuronID, ToNeuronID;
+    NeuronID FromNeuronID, ToNeuronID;
     double Weight;
     bool IsEnabled;
     bool IsRecurrent;
-    int InnovationID;
+    InnovationID InnovID;
 
-    LinkGene(int from,
-             int to,
+    LinkGene(NeuronID from,
+             NeuronID to,
              double weight,
              bool enabled,
-             int innovation_id,
+             neat::InnovationID innovation_id,
              bool recurrent=false)
     : FromNeuronID(from),
       ToNeuronID(to),
       Weight(weight),
       IsEnabled(enabled),
-      InnovationID(innovation_id),
+      InnovID(innovation_id),
       IsRecurrent(recurrent)
     {}
 
@@ -73,10 +90,11 @@ struct LinkGene
      */
     friend bool operator<(const LinkGene& lhs, const LinkGene& rhs)
     {
-        return lhs.InnovationID < rhs.InnovationID;
+        return lhs.InnovID < rhs.InnovID;
     }
 };
 
 
+};
 
 #endif
