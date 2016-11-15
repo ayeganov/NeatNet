@@ -20,7 +20,7 @@ namespace neat
 class Genome
 {
 private:
-    int m_genome_id;
+    GenomeID m_genome_id;
     std::vector<NeuronGene> m_neuron_genes;
     std::vector<LinkGene> m_link_genes;
 
@@ -56,8 +56,8 @@ private:
 public:
     Genome();
 
-    Genome(int id, std::size_t num_inputs, std::size_t num_outputs);
-    Genome(int id,
+    Genome(GenomeID id, std::size_t num_inputs, std::size_t num_outputs);
+    Genome(GenomeID id,
            std::vector<NeuronGene> neurons,
            std::vector<LinkGene> links,
            std::size_t num_inputs,
@@ -69,7 +69,7 @@ public:
     Genome(const Genome& g);
     Genome& operator=(const Genome& g);
 
-    void AddLink(double mutation_prob,
+    bool AddLink(double mutation_prob,
                  double recurrent_prob,
                  InnovationDB& innovation,
                  int num_trys_recurrent,
@@ -96,6 +96,11 @@ public:
     std::size_t NumGenes() const
     {
         return m_neuron_genes.size();
+    }
+
+    std::size_t NumLinks() const
+    {
+        return m_link_genes.size();
     }
 
     const std::vector<LinkGene>& NeuronLinks() const

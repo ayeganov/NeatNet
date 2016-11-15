@@ -16,11 +16,12 @@ namespace neat
 namespace internal
 {
     struct NeuronIDTag {};
-    struct LinkIDTag {};
+    struct GenomeIDTag {};
     struct InnovationIDTag {};
 }
 
 typedef Utils::IDType<int, internal::NeuronIDTag> NeuronID;
+typedef Utils::IDType<int, internal::GenomeIDTag> GenomeID;
 typedef Utils::IDType<int, internal::InnovationIDTag> InnovationID;
 
 

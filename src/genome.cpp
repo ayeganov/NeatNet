@@ -1,6 +1,5 @@
 #include <cassert>
 #include <iostream>
-#include <random>
 
 #include "../include/cpplinq.hpp"
 
@@ -9,7 +8,7 @@
 namespace neat
 {
 
-Genome::Genome(int id, std::size_t inputs, std::size_t outputs):m_genome_id(id),
+Genome::Genome(GenomeID id, std::size_t inputs, std::size_t outputs):m_genome_id(id),
                                                m_fitness(0),
                                                m_adjusted_fitness(0),
                                                m_num_inputs(inputs),
@@ -56,7 +55,7 @@ Genome::Genome(int id, std::size_t inputs, std::size_t outputs):m_genome_id(id),
 }
 
 
-Genome::Genome(int id,
+Genome::Genome(GenomeID id,
                 std::vector<NeuronGene> neuron_genes,
                 std::vector<LinkGene> link_genes,
                 std::size_t num_inputs,
@@ -91,7 +90,7 @@ void Genome::AddNeuron(double mutation_prob,
                        InnovationDB& inno_db,
                        int num_trys_to_find_old_link)
 {
-    if(m_random.RandomDouble() < mutation_prob)
+    if(m_random.RandomDouble() > mutation_prob)
     {
         return;
     }
@@ -120,7 +119,7 @@ void Genome::AddNeuron(double mutation_prob,
     if(m_neuron_genes.size() < SizeThreshold)
     {
         int upper_bound = m_neuron_genes.size() - 1 - (int)std::sqrt(m_neuron_genes.size());
-        while(num_trys_to_find_old_link--)
+        while(num_trys_to_find_old_link-- && chosen_link < 0)
         {
             chosen_link = find_link_idx(upper_bound);
         }
@@ -228,15 +227,15 @@ void Genome::AddNeuron(double mutation_prob,
     }
 }
 
-void Genome::AddLink(double mutation_prob,
+bool Genome::AddLink(double mutation_prob,
                      double recurrent_prob,
                      InnovationDB& innovationDB,
                      int num_trys_recurrent,
                      int num_trys_add_link)
 {
-    if(m_random.RandomClamped(0.0, 1.0) > mutation_prob)
+    if(m_random.RandomDouble() > mutation_prob)
     {
-        return;
+        return false;
     }
 
     NeuronID neuron_id_from = -1;
@@ -247,16 +246,16 @@ void Genome::AddLink(double mutation_prob,
        !FindUnlinkedNeurons(neuron_id_from, neuron_id_to, num_trys_recurrent))
     {
         std::cout << "Could not find any suitable neurons to link" << std::endl;
-        return;
+        return false;
     }
     else
     {
         assert(neuron_id_from >=0 && neuron_id_to >= 0);
 
-        auto is_recurrent_link = [&](int neuron_id1, int neuron_id2) {
+        auto is_recurrent_link = [&](NeuronID neuron_id1, NeuronID neuron_id2) {
             auto& neuron1 = m_neuron_genes[GetNeuronIndex(neuron_id1)];
             auto& neuron2 = m_neuron_genes[GetNeuronIndex(neuron_id2)];
-            return neuron1.SplitY > neuron2.SplitY;
+            return neuron_id1 == neuron_id2 || neuron1.SplitY > neuron2.SplitY;
         };
         InnovationID innovation_id = innovationDB.GetInnovationId(neuron_id_from, neuron_id_to, InnovationType::NEW_LINK);
         bool is_recurrent = is_recurrent_link(neuron_id_from, neuron_id_to);
@@ -272,6 +271,7 @@ void Genome::AddLink(double mutation_prob,
                          innovation_id,
                          is_recurrent);
         m_link_genes.push_back(new_link);
+        return true;
     }
 }
 
@@ -319,6 +319,7 @@ bool Genome::FindUnlinkedNeurons(NeuronID& neuron_id_from, NeuronID& neuron_id_t
     while(num_trys--)
     {
         int from_idx = m_random.RandomClamped((std::size_t)0, m_neuron_genes.size()-1);
+        // can't link back to input neurons, so skipping them in idx generation
         int to_idx = m_random.RandomClamped(m_num_inputs+1, m_neuron_genes.size()-1);
 
         auto& neuron_from = m_neuron_genes[from_idx];

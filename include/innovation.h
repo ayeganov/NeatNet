@@ -60,13 +60,19 @@ private:
     int m_next_innovation_id;
 
 public:
-    InnovationDB() : m_innovations(),
+    InnovationDB(int next_neuron_id, int next_inno_id)
+        : m_next_neuron_id(next_neuron_id),
+          m_next_innovation_id(next_inno_id)
+    {}
+
+    InnovationDB()
+        : m_innovations(),
                      m_next_neuron_id(1),
                      m_next_innovation_id(1)
     {}
 
     InnovationID GetInnovationId(NeuronID neuron_id_from, NeuronID neuron_id_to, InnovationType type);
-    InnovationID AddLinkInnovation(NeuronID neuron_id1, NeuronID neuron_id2);
+    InnovationID AddLinkInnovation(NeuronID neuron_id_from, NeuronID neuron_id_to);
     NeuronID AddNeuronInnovation(NeuronID neuron_id1,
                                  NeuronID neuron_id2,
                                  NeuronType neuron_type,
