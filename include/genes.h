@@ -18,11 +18,13 @@ namespace internal
     struct NeuronIDTag {};
     struct GenomeIDTag {};
     struct InnovationIDTag {};
+    struct SpeciesIDTag {};
 }
 
 typedef Utils::IDType<int, internal::NeuronIDTag> NeuronID;
 typedef Utils::IDType<int, internal::GenomeIDTag> GenomeID;
 typedef Utils::IDType<int, internal::InnovationIDTag> InnovationID;
+typedef Utils::IDType<int, internal::SpeciesIDTag> SpeciesID;
 
 
 enum class NeuronType

@@ -1,13 +1,14 @@
 #include <cassert>
 #include <iostream>
 
-#include "../include/cpplinq.hpp"
+#include "cpplinq.hpp"
 
-#include "../include/genome.h"
+#include "genome.h"
 
 namespace neat
 {
 
+//=========================== Constructors ===================================
 Genome::Genome(GenomeID id, std::size_t inputs, std::size_t outputs):m_genome_id(id),
                                                m_fitness(0),
                                                m_adjusted_fitness(0),
@@ -69,23 +70,13 @@ Genome::Genome(GenomeID id,
                                          m_num_outputs(num_outputs),
                                          m_random()
 {}
+
 Genome::~Genome()
 {
 }
 
 
-int Genome::GetNeuronIndex(NeuronID neuron_id)
-{
-    for(int i = 0; i < m_neuron_genes.size(); ++i)
-    {
-        if(m_neuron_genes[i].ID == neuron_id)
-        {
-            return i;
-        }
-    }
-    return -1;
-}
-
+//================================ PUBLIC METHODS =================================
 void Genome::AddNeuron(double mutation_prob,
                        InnovationDB& inno_db,
                        int num_trys_to_find_old_link)
@@ -275,6 +266,106 @@ bool Genome::AddLink(double mutation_prob,
     }
 }
 
+
+void Genome::MutateWeights(double mutation_prob, double prob_new_weight, double max_perturbation)
+{
+    for(auto& link_gene : m_link_genes)
+    {
+        if(m_random.RandomDouble() < mutation_prob)
+        {
+            if(m_random.RandomDouble() < prob_new_weight)
+            {
+                link_gene.Weight = m_random.RandomClamped(-1.0, 1.0);
+            }
+            else
+            {
+                link_gene.Weight += m_random.RandomDouble() * max_perturbation;
+            }
+        }
+    }
+}
+
+
+void Genome::MutateActivationResponse(double mutation_prob, double max_perturbation)
+{
+    for(auto& neuron_gene : m_neuron_genes)
+    {
+        if(m_random.RandomDouble() < mutation_prob)
+        {
+            neuron_gene.ActivationResponse += m_random.RandomClamped(-1.0, 1.0) * max_perturbation;
+        }
+    }
+}
+
+
+double Genome::CalculateCompatabilityScore(const Genome& other)
+{
+    //travel down the length of each genome counting the number of
+    //disjoint genes, the number of excess genes and the number of
+    //matched genes
+    double num_disjoint = 0;
+    double num_matched  = 0;
+    double num_excess   = std::fabs(NumLinks() - other.NumLinks());
+
+    //this records the summed difference of weights in matched genes
+    double weight_difference = 0;
+
+    //position holders for each genome. They are incremented as we
+    //step down each genomes length.
+    int g1 = 0;
+    int g2 = 0;
+
+    // REMARK: This is different from the original
+    while ( (g1 < NumLinks()) && (g2 < other.NumLinks()) )
+    {
+        //get innovation numbers for each gene at this point
+        InnovationID id1 = m_link_genes[g1].InnovID;
+        InnovationID id2 = other.m_link_genes[g2].InnovID;
+
+        //innovation numbers are identical so increase the matched score
+        if (id1 == id2)
+        {
+            ++g1;
+            ++g2;
+            ++num_matched;
+
+            //get the weight difference between these two genes
+            weight_difference += std::fabs(m_link_genes[g1].Weight - other.m_link_genes[g2].Weight);
+        }
+
+        //innovation numbers are different so increment the disjoint score
+        if (id1 < id2)
+        {
+            ++num_disjoint;
+            ++g1;
+        }
+
+        if (id1 > id2)
+        {
+            ++num_disjoint;
+            ++g2;
+        }
+
+    }//end while
+
+    //get the length of the longest genome
+    int longest = std::max(other.NumGenes(), NumGenes());
+
+    //these are multipliers used to tweak the final score.
+    const double mDisjoint = 1;
+    const double mExcess   = 1;
+    const double mMatched  = 0.4;
+
+    //finally calculate the scores
+    double score = (mExcess * num_excess/(double)longest) +
+                   (mDisjoint * num_disjoint/(double)longest) +
+                   (mMatched * weight_difference / num_matched);
+
+    return score;
+}
+
+
+//========================================== PRIVATE METHODS ===============================
 bool Genome::FindNonRecurrentNeuron(NeuronID& neuron_id_from, NeuronID& neuron_id_to, double prob, int num_trys)
 {
     bool result = false;
@@ -345,6 +436,19 @@ bool Genome::IsExistingLink(NeuronID neuron_from_id, NeuronID neuron_to_id)
             return link.FromNeuronID == neuron_from_id
                 && link.ToNeuronID == neuron_to_id;
         });
+}
+
+
+int Genome::GetNeuronIndex(NeuronID neuron_id)
+{
+    for(int i = 0; i < m_neuron_genes.size(); ++i)
+    {
+        if(m_neuron_genes[i].ID == neuron_id)
+        {
+            return i;
+        }
+    }
+    return -1;
 }
 
 }

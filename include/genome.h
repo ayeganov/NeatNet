@@ -31,7 +31,7 @@ private:
     std::size_t m_num_inputs;
     std::size_t m_num_outputs;
 
-    int m_species_id;
+    SpeciesID m_species_id;
 
     Utils::Random<std::knuth_b> m_random;
 
@@ -88,6 +88,13 @@ public:
 
     double CalculateCompatabilityScore(const Genome& other);
 
+    // overload '<' operator for sorting by fitness - fittest to weakest
+    friend bool operator<(const Genome& lhs, const Genome& rhs)
+    {
+        return lhs.m_fitness > rhs.m_fitness;
+    }
+
+    //============================accessor methods============================
     const std::vector<NeuronGene>& NeuronGenes() const
     {
         return m_neuron_genes;
@@ -107,6 +114,9 @@ public:
     {
         return m_link_genes;
     }
+
+    GenomeID ID() const { return m_genome_id; }
+    void SetID(const GenomeID id) { m_genome_id = id; }
 };
 
 }

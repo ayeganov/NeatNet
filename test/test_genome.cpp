@@ -1,12 +1,12 @@
 #define CATCH_CONFIG_MAIN
-#include "../include/catch.hpp"
+#include "catch.hpp"
 
 #include <iostream>
 #include <vector>
 
-#include "../include/cpplinq.hpp"
+#include "cpplinq.hpp"
 
-#include "../include/genome.h"
+#include "genome.h"
 
 SCENARIO("Genome gets initialized with correct number of neurons", "[genome]")
 {

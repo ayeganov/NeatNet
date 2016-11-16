@@ -1,5 +1,5 @@
-#include "../include/innovation.h"
-#include "../include/cpplinq.hpp"
+#include "innovation.h"
+#include "cpplinq.hpp"
 
 
 namespace neat

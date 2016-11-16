@@ -1,11 +1,11 @@
 #define CATCH_CONFIG_MAIN
-#include "../include/catch.hpp"
+#include "catch.hpp"
 
 #include <iostream>
 
-#include "../include/cpplinq.hpp"
+#include "cpplinq.hpp"
 
-#include "../include/innovation.h"
+#include "innovation.h"
 
 SCENARIO("InnovationDB AddNewInnovation [innovation]")
 {
