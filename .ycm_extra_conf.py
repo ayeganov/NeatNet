@@ -37,6 +37,7 @@ flags = [
     '-x',
     'c++',
     '-I/mnt/c/Users/aleksandr/projects/NeatNet/include',
+    '-I/mnt/d/fun/NeatNet/include',
     '-std=c++11',
 ]
 

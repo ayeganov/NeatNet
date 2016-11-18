@@ -117,6 +117,11 @@ public:
 
     GenomeID ID() const { return m_genome_id; }
     void SetID(const GenomeID id) { m_genome_id = id; }
+
+    double Fitness() const { return m_fitness; }
+    void SetAjustedFitness(double adjusted_fitness) { m_adjusted_fitness = adjusted_fitness; }
+
+    double AmountToSpawn() const { return m_amount_to_spawn; }
 };
 
 }
