@@ -2,6 +2,7 @@
 #define __PHENOTYPE_H__
 
 #include <vector>
+#include <memory>
 
 #include "genes.h"
 
@@ -15,16 +16,18 @@ enum class UPDATE_TYPE
 };
 
 struct Neuron;
+typedef std::shared_ptr<Neuron> SNeuronPtr;
+typedef std::unique_ptr<Neuron> UNeuronPtr;
 
 struct Link
 {
-    Neuron* In;
-    Neuron* Out;
+    SNeuronPtr In;
+    SNeuronPtr Out;
 
     double Weight;
 
     bool IsRecurrent;
-    Link(Neuron* in, Neuron* out, double weight, bool recurrent)
+    Link(SNeuronPtr in, SNeuronPtr out, double weight, bool recurrent)
         : In(in),
           Out(out),
           Weight(weight),
@@ -53,17 +56,22 @@ struct Neuron
     {}
 };
 
+
 class NeuralNet
 {
 private:
-    std::vector<Neuron*> m_neurons;
+    std::vector<SNeuronPtr> m_neurons;
     std::size_t m_net_depth;
 
 public:
-    NeuralNet(std::vector<Neuron*> neurons, std::size_t net_depth)
+    NeuralNet(std::vector<SNeuronPtr> neurons, std::size_t net_depth)
         : m_neurons(neurons),
           m_net_depth(net_depth)
     {}
+
+    NeuralNet(const std::vector<NeuronGene>& neuron_genes,
+              const std::vector<LinkGene>& link_genes,
+              std::size_t depth);
 
     ~NeuralNet();
 

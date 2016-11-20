@@ -13,10 +13,51 @@ double sigmoid(double input, double act_response)
     return (1.0 / (1.0 + std::exp(-input / act_response)));
 }
 
+NeuralNet::NeuralNet(const std::vector<NeuronGene>& neuron_genes,
+                     const std::vector<LinkGene>& link_genes,
+                     std::size_t depth): m_net_depth(depth)
+{
+    //first, create all the required neurons
+    m_neurons = cpplinq::from(neuron_genes)
+    >> cpplinq::select([](const NeuronGene& ng)
+        {
+            SNeuronPtr neuron_ptr = std::make_shared<Neuron>(ng.Type,
+                                                             ng.ID,
+                                                             ng.ActivationResponse);
+            return neuron_ptr;
+        })
+    >> cpplinq::to_vector();
+
+    auto get_neuron_ptr = [this](NeuronID id)
+    {
+        for(auto& np : this->m_neurons)
+        {
+            if(np->ID == id)
+                return np;
+        }
+        return std::make_shared<Neuron>(nullptr);
+    };
+
+    //now to create the links.
+    for(const auto& link_gene : link_genes)
+    {
+        if(link_gene.IsEnabled)
+        {
+            auto from_neuron = get_neuron_ptr(link_gene.FromNeuronID);
+            auto to_neuron = get_neuron_ptr(link_gene.ToNeuronID);
+
+            Link tmp_link(from_neuron, to_neuron, link_gene.Weight, link_gene.IsRecurrent);
+
+            from_neuron->OutLinks.push_back(tmp_link);
+            to_neuron->InLinks.push_back(tmp_link);
+        }
+    }
+}
+
 
 NeuralNet::~NeuralNet()
 {
-    std::cout << "Don't forget to clean up the network." << std::endl;
+
 }
 
 
