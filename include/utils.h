@@ -72,6 +72,19 @@ public:
         return *this;
     }
 
+    IDType<T, Meaning>& operator++()
+    {
+        m_id++;
+        return *this;
+    }
+
+    IDType<T, Meaning> operator++(int)
+    {
+        IDType<T, Meaning> tmp = m_id;
+        operator++();
+        return tmp;
+    }
+
 private:
     T m_id;
 };

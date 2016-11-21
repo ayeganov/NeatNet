@@ -37,6 +37,27 @@ struct Innovation
     {
     }
 
+    Innovation(const NeuronGene& ng,
+               InnovationID id): Type(InnovationType::NEW_NEURON),
+                                 ID(id),
+                                 NeuronFromID(-1),
+                                 NeuronToID(-1),
+                                 NewNeuronID(ng.ID),
+                                 Neuron_Type(ng.Type),
+                                 SplitX(ng.SplitX),
+                                 SplitY(ng.SplitY)
+    {}
+
+    Innovation(const LinkGene& lg,
+               InnovationID id): Type(InnovationType::NEW_LINK),
+                                 ID(id),
+                                 NeuronFromID(lg.FromNeuronID),
+                                 NeuronToID(lg.ToNeuronID),
+                                 NewNeuronID(-1),
+                                 Neuron_Type(NeuronType::NONE)
+    {}
+
+
     Innovation(InnovationType type,
                InnovationID id,
                NeuronID neuron_from_id,
@@ -60,6 +81,9 @@ private:
     int m_next_innovation_id;
 
 public:
+    InnovationDB(const std::vector<NeuronGene>& start_neuron_genes,
+                 const std::vector<LinkGene>& start_link_genes);
+
     InnovationDB(int next_neuron_id, int next_inno_id)
         : m_next_neuron_id(next_neuron_id),
           m_next_innovation_id(next_inno_id)
@@ -67,8 +91,8 @@ public:
 
     InnovationDB()
         : m_innovations(),
-                     m_next_neuron_id(1),
-                     m_next_innovation_id(1)
+          m_next_neuron_id(1),
+          m_next_innovation_id(1)
     {}
 
     InnovationID GetInnovationId(NeuronID neuron_id_from, NeuronID neuron_id_to, InnovationType type);

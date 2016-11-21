@@ -5,6 +5,24 @@
 namespace neat
 {
 
+InnovationDB::InnovationDB(const std::vector<NeuronGene>& start_neuron_genes,
+                            const std::vector<LinkGene>& start_link_genes)
+    : InnovationDB()
+{
+    // first create neuron innovations
+    for(auto const& ng : start_neuron_genes)
+    {
+        Innovation innov(ng, m_next_innovation_id++);
+        m_innovations.push_back(innov);
+    }
+
+    // ... then create link innovations
+    for(auto const& lg : start_link_genes)
+    {
+        m_innovations.push_back(Innovation(lg, m_next_innovation_id++));
+    }
+}
+
 InnovationID InnovationDB::GetInnovationId(NeuronID neuron_id_from, NeuronID neuron_id_to, InnovationType type)
 {
     auto result = cpplinq::from(m_innovations)
@@ -26,6 +44,7 @@ InnovationID InnovationDB::AddLinkInnovation(NeuronID neuron_from_id, NeuronID n
     m_innovations.push_back(new_innovation);
     return m_next_innovation_id++;
 }
+
 
 NeuronID InnovationDB::AddNeuronInnovation(NeuronID neuron_from, NeuronID neuron_to, NeuronType neuron_type, double splix_x, double split_y)
 {
