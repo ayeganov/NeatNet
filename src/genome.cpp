@@ -298,7 +298,7 @@ void Genome::MutateActivationResponse(double mutation_prob, double max_perturbat
 }
 
 
-double Genome::CalculateCompatabilityScore(const Genome& other)
+double Genome::CalculateCompatabilityScore(const Genome& other) const
 {
     //travel down the length of each genome counting the number of
     //disjoint genes, the number of excess genes and the number of
@@ -315,7 +315,7 @@ double Genome::CalculateCompatabilityScore(const Genome& other)
     int g1 = 0;
     int g2 = 0;
 
-    // REMARK: This is different from the original
+    // REMARK: This is different from Matt's code
     while ( (g1 < NumLinks()) && (g2 < other.NumLinks()) )
     {
         //get innovation numbers for each gene at this point

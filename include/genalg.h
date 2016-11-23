@@ -7,9 +7,14 @@
 #include "genome.h"
 #include "species.h"
 #include "innovation.h"
+#include "phenotype.h"
 
 namespace neat
 {
+
+const int NUM_GENS_ALLOWED_NO_IMPROV = 15;
+const int NUM_BEST_GENOMES = 5;
+const double COMPATIBILITY_THRESHOLD = 0.26;
 
 class GenAlg
 {
@@ -24,14 +29,21 @@ private:
     std::vector<Species> m_species;
     double m_best_ever_fitness;
 
+    void PurgeSpecies();
+    void UpdateGenomeScores(const std::vector<double>& fitness_scores);
+    void UpdateBestGenomes();
+    void SpeciateGenomes();
+    void UpdateSpeciesFitness();
+    void CalculateSpeciesSpawnAmounts();
 
 public:
     GenAlg(std::size_t pop_size,
            std::size_t num_inputs,
            std::size_t num_outputs);
 
-};
+    std::vector<SNeuralNetPtr> Epoch(const std::vector<double>& fitness_scores);
 
+};
 
 
 };

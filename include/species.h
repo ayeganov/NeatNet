@@ -8,6 +8,10 @@
 namespace neat
 {
 
+const int YoungBonusThreshold = 10;
+const int OldPenaltyThreshold = 15;
+const double SURVIVAL_RATE = 0.2;
+
 class Species
 {
 private:
@@ -18,19 +22,19 @@ private:
     std::vector<Genome*> m_members;
     // number of generations this species has not experienced any improvement
     // in fitness
-    unsigned int m_gens_no_improvement;
+    std::size_t m_gens_no_improvement;
     // total number of generations this species has been alive
-    unsigned int m_age;
+    std::size_t m_age;
 
     double m_spawns_required;
 
 
 public:
-    Species(Genome& originator, SpeciesID id);
+    Species(const Genome& originator, SpeciesID id);
 
     void AdjustFitness();
 
-    void AddMember(Genome& new_member);
+    void AddMember(const Genome& new_member);
 
     void Purge();
 
@@ -42,6 +46,13 @@ public:
     {
         return lhs.m_leader.Fitness() > rhs.m_leader.Fitness();
     }
+
+    std::size_t GensNoImprovement() const { return m_gens_no_improvement; }
+    std::size_t Age() const { return m_age; }
+    double SpawnsRequired() const { return m_spawns_required; }
+    double LeaderFitness() const { return m_leader.Fitness(); }
+
+    const Genome& Leader() const { return m_leader; }
 
 };
 

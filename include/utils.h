@@ -89,5 +89,80 @@ private:
     T m_id;
 };
 
+
+/**
+ * This class calculates total, average and standard deviation values of a
+ * series of numbers given to it.
+ */
+class RunningStat
+{
+public:
+    RunningStat(): m_num_values(0),
+                   m_old_mean(0),
+                   m_new_mean(0),
+                   m_old_std(0),
+                   m_new_std(0),
+                   m_total(0)
+    {}
+
+    void Clear()
+    {
+        m_num_values = 0;
+        m_old_mean = m_new_mean = m_old_std = m_new_std = 0.0;
+        m_total = 0.0;
+    }
+
+    void Push(double value)
+    {
+        m_total += value;
+        ++m_num_values;
+
+        if(m_num_values == 1)
+        {
+            m_old_mean = m_new_mean = value;
+            m_old_std = 0.0;
+        }
+        else
+        {
+            m_new_mean = m_old_mean + (value - m_old_mean) / m_num_values;
+            m_new_std = m_old_std + (value - m_old_mean) * (value - m_new_mean);
+
+            m_old_mean = m_new_mean;
+            m_old_std = m_new_std;
+        }
+    }
+
+    int NumValues()
+    {
+        return m_num_values;
+    }
+
+    double Mean()
+    {
+        return (m_num_values > 0) ? m_new_mean : 0.0;
+    }
+
+    double Variance()
+    {
+        return (m_num_values > 1 ? m_new_std / (m_num_values - 1) : 0.0);
+    }
+
+    double StandardDeviation()
+    {
+        return std::sqrt(Variance());
+    }
+
+    double Total()
+    {
+        return m_total;
+    }
+
+private:
+    int m_num_values;
+    double m_old_mean, m_new_mean, m_old_std, m_new_std;
+    double m_total;
+};
+
+
 }
 #endif

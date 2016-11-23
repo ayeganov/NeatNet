@@ -19,6 +19,9 @@ struct Neuron;
 typedef std::shared_ptr<Neuron> SNeuronPtr;
 typedef std::unique_ptr<Neuron> UNeuronPtr;
 
+class NeuralNet;
+typedef std::shared_ptr<NeuralNet> SNeuralNetPtr;
+
 struct Link
 {
     SNeuronPtr In;

@@ -86,7 +86,7 @@ public:
     void MutateActivationResponse(double mutation_prob,
                                   double max_perturbation);
 
-    double CalculateCompatabilityScore(const Genome& other);
+    double CalculateCompatabilityScore(const Genome& other) const;
 
     // overload '<' operator for sorting by fitness - fittest to weakest
     friend bool operator<(const Genome& lhs, const Genome& rhs)
@@ -119,9 +119,12 @@ public:
     void SetID(const GenomeID id) { m_genome_id = id; }
 
     double Fitness() const { return m_fitness; }
+    void SetFitness(double fitness) { m_fitness = fitness; }
     void SetAjustedFitness(double adjusted_fitness) { m_adjusted_fitness = adjusted_fitness; }
+    double GetAdjustedFitness() const { return m_adjusted_fitness; }
 
     double AmountToSpawn() const { return m_amount_to_spawn; }
+    void SetAmountToSpawn(double to_spawn) { m_amount_to_spawn = to_spawn; }
 };
 
 }

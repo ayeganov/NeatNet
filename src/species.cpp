@@ -16,7 +16,7 @@ Species::Species(Genome& originator, SpeciesID id): m_leader(originator),
 }
 
 //==============================PUBLIC METHODS=================================
-void Species::AddMember(Genome& new_member)
+void Species::AddMember(const Genome& new_member)
 {
     if(new_member.Fitness() > m_leader.Fitness())
     {
@@ -36,8 +36,6 @@ void Species::Purge()
 
 void Species::AdjustFitness()
 {
-    const int YoungBonusThreshold = 10;
-    const int OldPenaltyThreshold = 15;
     for(auto genome : m_members)
     {
         double fitness = genome->Fitness();
@@ -66,7 +64,6 @@ void Species::CalculateSpawnAmount()
 
 Genome Species::Spawn()
 {
-    double SURVIVAL_RATE = 0.2;
     static Utils::Random<std::knuth_b> random;
 
     assert(m_members.size() > 0);
