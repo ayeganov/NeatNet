@@ -74,6 +74,8 @@ struct LinkGene
     bool IsRecurrent;
     InnovationID InnovID;
 
+    LinkGene() {}
+
     LinkGene(NeuronID from,
              NeuronID to,
              double weight,

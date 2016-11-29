@@ -76,3 +76,39 @@ SCENARIO("Genome gets initialized with correct number of neurons", "[genome]")
         }
     }
 }
+
+SCENARIO("BLALBLAB", "[genome]")
+{
+    using namespace cpplinq;
+    GIVEN("BLAKJSDF")
+    {
+        WHEN("KJKJDF")
+        {
+            THEN("FDKJFDKF")
+            {
+                typedef int* iptr;
+                int v1[] = {1,2,3,4};
+                char v2[] = {'a','b','c'};
+                iptr v3[1] = {};
+                from_array(v1) >> zip_with(from_array(v2)) >> for_each([](const std::pair<int, char>& p)
+                {
+                    std::cout << "First " << p.first << " and second " << p.second << std::endl;
+                });
+                int v = 5;
+                iptr vptr = &v;
+                iptr res = cpplinq::from_array(v2) >> select([&vptr](char c)
+                    {
+                        if(c == 'd')
+                            return vptr;
+                        else
+                            return static_cast<iptr>(nullptr);
+                    })
+                    >> first_or_default([](iptr i) { return i != nullptr; });
+                if(res)
+                    std::cout << "Unexpected " << res << std::endl;
+                else
+                    std::cout << "Expected!" << std::endl;
+            }
+        }
+    }
+}

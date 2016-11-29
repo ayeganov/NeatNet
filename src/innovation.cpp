@@ -58,6 +58,20 @@ NeuronID InnovationDB::AddNeuronInnovation(NeuronID neuron_from, NeuronID neuron
 }
 
 
+NeuronGene InnovationDB::CloneNeuronFromID(NeuronID id) const
+{
+    using namespace cpplinq;
+    NeuronGene ng(NeuronType::HIDDEN, 0, 0, 0);
+
+    from(m_innovations) >> first([id](const Innovation& innov)
+        {
+            return innov.ID == id;
+        });
+
+    return ng;
+}
+
+
 std::string to_string(InnovationType type)
 {
     switch(type)

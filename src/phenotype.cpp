@@ -38,7 +38,7 @@ NeuralNet::NeuralNet(const std::vector<NeuronGene>& neuron_genes,
         return std::make_shared<Neuron>(nullptr);
     };
 
-    //now to create the links.
+    //now create the links.
     for(const auto& link_gene : link_genes)
     {
         if(link_gene.IsEnabled)

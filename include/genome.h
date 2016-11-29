@@ -88,6 +88,9 @@ public:
 
     double CalculateCompatabilityScore(const Genome& other) const;
 
+    Genome Crossover(const Genome& other, const InnovationDB& inno_db, GenomeID genome_id);
+
+    void SortLinks();
     // overload '<' operator for sorting by fitness - fittest to weakest
     friend bool operator<(const Genome& lhs, const Genome& rhs)
     {

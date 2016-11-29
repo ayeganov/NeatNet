@@ -365,6 +365,133 @@ double Genome::CalculateCompatabilityScore(const Genome& other) const
 }
 
 
+Genome Genome::Crossover(const Genome& mom, const InnovationDB& inno_db, GenomeID genome_id)
+{
+    enum PARENT_TYPE{MOM, DAD};
+    Genome& dad = *this;
+    PARENT_TYPE best;
+
+    if(mom.Fitness() == dad.Fitness())
+    {
+        if(mom.NumLinks() == dad.NumLinks())
+        {
+            best = (PARENT_TYPE)m_random.RandomClamped(0, 1);
+        }
+        else
+        {
+            best = mom.NumLinks() < dad.NumLinks() ? MOM : DAD;
+        }
+    }
+    else
+    {
+        best = mom.Fitness() > dad.Fitness() ? MOM : DAD;
+    }
+
+    std::vector<NeuronGene> baby_neurons;
+    std::vector<LinkGene> baby_links;
+
+    std::vector<NeuronID> neuron_ids;
+
+    auto current_mom = mom.m_link_genes.begin();
+    auto current_dad = dad.m_link_genes.begin();
+
+    auto mom_end = mom.m_link_genes.end();
+    auto dad_end = dad.m_link_genes.end();
+    LinkGene selected_gene;
+
+    while(!((current_mom == mom_end) && current_dad == dad_end))
+    {
+        if(current_mom == mom_end && current_dad != dad_end)
+        {
+            if(best == DAD)
+            {
+                selected_gene = *current_dad;
+            }
+            ++current_dad;
+        }
+        else if(current_mom != mom_end && current_dad == dad_end)
+        {
+            if(best == MOM)
+            {
+                selected_gene = *current_mom;
+            }
+            ++current_mom;
+        }
+        else if(current_mom->InnovID < current_dad->InnovID)
+        {
+            if(best == MOM)
+            {
+                selected_gene = *current_mom;
+            }
+            ++current_mom;
+        }
+        else if(current_dad->InnovID < current_mom->InnovID)
+        {
+            if(best == DAD)
+            {
+                selected_gene = *current_dad;
+            }
+            ++current_dad;
+        }
+        else if(current_dad->InnovID == current_mom->InnovID)
+        {
+            if(m_random.RandomClamped(0.0, 1.0) < 0.5)
+            {
+                selected_gene = *current_mom;
+            }
+            else
+            {
+                selected_gene = *current_dad;
+            }
+            ++current_dad;
+            ++current_mom;
+        }
+
+        if(!baby_links.size())
+        {
+            baby_links.push_back(selected_gene);
+        }
+        else
+        {
+            std::size_t size = baby_links.size();
+            if(baby_links[size-1].InnovID != selected_gene.InnovID)
+            {
+                baby_links.push_back(selected_gene);
+            }
+        }
+
+        if(!(cpplinq::from(neuron_ids) >> cpplinq::contains(selected_gene.FromNeuronID)))
+        {
+            neuron_ids.push_back(selected_gene.FromNeuronID);
+        }
+
+        if(!(cpplinq::from(neuron_ids) >> cpplinq::contains(selected_gene.ToNeuronID)))
+        {
+            neuron_ids.push_back(selected_gene.ToNeuronID);
+        }
+
+        std::sort(neuron_ids.begin(), neuron_ids.end());
+    }
+
+    for(NeuronID nid : neuron_ids)
+    {
+        baby_neurons.push_back(inno_db.CloneNeuronFromID(nid));
+    }
+
+    Genome baby(genome_id,
+                baby_neurons,
+                baby_links,
+                m_num_inputs,
+                m_num_outputs);
+    return baby;
+}
+
+void Genome::SortLinks()
+{
+    std::sort(m_link_genes.begin(), m_link_genes.end());
+}
+
+
 //========================================== PRIVATE METHODS ===============================
 bool Genome::FindNonRecurrentNeuron(NeuronID& neuron_id_from, NeuronID& neuron_id_to, double prob, int num_trys)
 {

@@ -62,20 +62,20 @@ void Species::CalculateSpawnAmount()
             });
 }
 
-Genome Species::Spawn()
+Genome* Species::Spawn()
 {
     static Utils::Random<std::knuth_b> random;
 
     assert(m_members.size() > 0);
     if(m_members.size() == 1)
     {
-        return *m_members[0];
+        return m_members[0];
     }
     else
     {
         int max_idx = m_members.size() * SURVIVAL_RATE;
         int the_one = random.RandomClamped(0, max_idx);
-        return *(cpplinq::from(m_members) >> cpplinq::element_at_or_default(the_one));
+        return cpplinq::from(m_members) >> cpplinq::element_at_or_default(the_one);
     }
 }
 

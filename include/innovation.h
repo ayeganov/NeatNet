@@ -105,6 +105,8 @@ public:
 
     NeuronID GetNeuronID(InnovationID innovation_id) const;
 
+    NeuronGene CloneNeuronFromID(NeuronID id) const;
+
     const std::vector<Innovation>& Innovations() const
     {
         return m_innovations;

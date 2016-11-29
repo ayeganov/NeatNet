@@ -40,7 +40,7 @@ public:
     /**
      * Returns a random double between 0 and 1
      */
-    double RandomDouble()
+    double RandomDouble() const
     {
         std::uniform_real_distribution<double> unif_double(0.0, 1.0);
         return unif_double(m_rand_engine);
@@ -63,8 +63,10 @@ public:
         return lhs.m_id == rhs.m_id;
     }
 
-    inline IDType<T, Meaning>& operator=(const IDType<T, Meaning>& other)
+    template <typename OtherT, typename OtherMeaning>
+    inline IDType<T, Meaning>& operator=(const IDType<OtherT, OtherMeaning>& other)
     {
+        bool same_types = std::is_same<decltype(*this), decltype(other)>::value;
         if(m_id != other.m_id)
         {
             m_id = other.m_id;
