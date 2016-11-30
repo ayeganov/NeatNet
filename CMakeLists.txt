@@ -10,5 +10,8 @@ add_executable(test_genome ${test_genome_sources})
 set(test_innovation_sources "./src/innovation.cpp" "./test/test_innovation.cpp")
 add_executable(test_innovation ${test_innovation_sources})
 
+set(test_genalg_sources "./src/genalg.cpp" "./test/test_genalg.cpp" "./src/genome.cpp" "./src/innovation.cpp" "./src/phenotype.cpp" "./src/species.cpp")
+add_executable(test_genalg ${test_genalg_sources})
+
 #add_library(NeatNet SHARED src/genome.cpp)
 #add_executable(test_neat_net ${TEST_SOURCES})

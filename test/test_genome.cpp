@@ -108,6 +108,13 @@ SCENARIO("BLALBLAB", "[genome]")
                     std::cout << "Unexpected " << res << std::endl;
                 else
                     std::cout << "Expected!" << std::endl;
+
+
+                neat::GenomeID gid = 5;
+                neat::GenomeID nid = 5;
+                bool result = gid == nid;
+                REQUIRE(result);
+
             }
         }
     }
