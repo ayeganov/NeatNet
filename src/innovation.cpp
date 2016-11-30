@@ -63,10 +63,15 @@ NeuronGene InnovationDB::CloneNeuronFromID(NeuronID id) const
     using namespace cpplinq;
     NeuronGene ng(NeuronType::HIDDEN, 0, 0, 0);
 
-    from(m_innovations) >> first([id](const Innovation& innov)
+    auto innovation = from(m_innovations) >> first([id](const Innovation& innov)
         {
-            return innov.ID == id;
+            return innov.NewNeuronID == id;
         });
+
+    ng.Type = innovation.Neuron_Type;
+    ng.SplitX = innovation.SplitX;
+    ng.SplitY = innovation.SplitY;
+    ng.ID = innovation.NewNeuronID;
 
     return ng;
 }
