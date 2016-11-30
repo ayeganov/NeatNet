@@ -54,7 +54,7 @@ private:
     void CalculateSpeciesSpawnAmounts();
     std::vector<Genome> CreateNewPopulation();
     Genome TournamentSelect(int num_battles);
-    Genome MakeCrossoverBaby(Species& s, GenomeID next_id) const;
+    Genome MakeCrossoverBaby(Species& s, GenomeID next_id);
 
 public:
     GenAlg(std::size_t pop_size,

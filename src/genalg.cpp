@@ -81,11 +81,10 @@ void GenAlg::PurgeSpecies()
 
 void GenAlg::UpdateGenomeScores(const std::vector<double>& fitness_scores)
 {
-    from(m_genomes) >> zip_with(from(fitness_scores))
-    >> for_each([this](std::pair<Genome, double>& p)
-        {
-            p.first.SetFitness(p.second);
-        });
+    for(int i = 0; i < m_genomes.size(); ++i)
+    {
+        m_genomes[i].SetFitness(fitness_scores[i]);
+    }
 }
 
 void GenAlg::UpdateBestGenomes()
@@ -93,8 +92,10 @@ void GenAlg::UpdateBestGenomes()
     std::sort(m_genomes.begin(), m_genomes.end());
     m_best_ever_fitness = std::max(m_best_ever_fitness, m_genomes[0].Fitness());
 
-    m_best_genomes = from(m_genomes) >> take(NUM_BEST_GENOMES)
-                        >> select([](Genome& g) { return &g; }) >> to_vector();
+    for(int i = 0; i < NUM_BEST_GENOMES; ++i)
+    {
+        m_best_genomes.push_back(&m_genomes[i]);
+    }
 }
 
 void GenAlg::SpeciateGenomes()
@@ -122,7 +123,10 @@ void GenAlg::SpeciateGenomes()
 
 void GenAlg::UpdateSpeciesFitness()
 {
-    from(m_species) >> for_each([](Species& s) { s.AdjustFitness(); });
+    for(auto s : m_species)
+    {
+        s.AdjustFitness();
+    }
 }
 
 /**
@@ -134,13 +138,18 @@ void GenAlg::UpdateSpeciesFitness()
 void GenAlg::CalculateSpeciesSpawnAmounts()
 {
     Utils::RunningStat rs;
-    from(m_genomes) >> for_each( [&rs](const Genome& g) { rs.Push(g.GetAdjustedFitness()); });
-    from(m_genomes) >> for_each( [&rs](Genome& g)
-        {
-            double to_spawn = g.GetAdjustedFitness() / rs.Mean();
-            g.SetAmountToSpawn(to_spawn);
-        });
-    from(m_species) >> for_each( [](Species& s) { s.CalculateSpawnAmount(); });
+    from(m_genomes) >> for_each( [&rs](const Genome g) { rs.Push(g.GetAdjustedFitness()); });
+
+    for(auto& g : m_genomes)
+    {
+        double to_spawn = g.GetAdjustedFitness() / rs.Mean();
+        g.SetAmountToSpawn(to_spawn);
+    }
+
+    for(auto& s : m_species)
+    {
+        s.CalculateSpawnAmount();
+    }
 }
 
 /**
@@ -156,8 +165,12 @@ void GenAlg::CalculateSpeciesSpawnAmounts()
 std::vector<Genome> GenAlg::CreateNewPopulation()
 {
     std::vector<Genome> new_pop{m_genomes.size()};
+
     // grab all the leaders from each species
-    from(m_species) >> for_each([&new_pop](const Species& s) { new_pop.push_back(s.Leader()); });
+    for(auto& s : m_species)
+    {
+        new_pop.push_back(s.Leader());
+    }
 
     auto total_num_spawned = new_pop.size();
     for(auto species : m_species)
@@ -216,7 +229,7 @@ std::vector<Genome> GenAlg::CreateNewPopulation()
     return new_pop;
 }
 
-Genome GenAlg::MakeCrossoverBaby(Species& species, GenomeID next_id) const
+Genome GenAlg::MakeCrossoverBaby(Species& species, GenomeID next_id)
 {
     Genome baby;
     Genome* mom = species.Spawn();
