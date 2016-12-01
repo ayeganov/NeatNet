@@ -51,17 +51,17 @@ SCENARIO("Genome gets initialized with correct number of neurons", "[genome]")
         int inputs = 3;
         int outputs = 2;
         neat::Genome g(ID, inputs, outputs);
-        neat::InnovationDB inno_db(g.NumGenes() + 1, g.NumGenes() + g.NumLinks() + 1);
+        neat::InnovationDB inno_db(g.NumNeurons() + 1, g.NumNeurons() + g.NumLinks() + 1);
 
         int num_links = g.NumLinks();
-        int num_neurons = g.NumGenes();
+        int num_neurons = g.NumNeurons();
 
         WHEN("Neuron is added")
         {
             THEN("Number of neurons goes up by 1")
             {
                 g.AddNeuron(1.0, inno_db, 5);
-                REQUIRE(num_neurons + 1 == g.NumGenes());
+                REQUIRE(num_neurons + 1 == g.NumNeurons());
             }
         }
 
@@ -77,44 +77,23 @@ SCENARIO("Genome gets initialized with correct number of neurons", "[genome]")
     }
 }
 
-SCENARIO("BLALBLAB", "[genome]")
+SCENARIO("A neuron is added to a genome with 100\% probability", "[genome]")
 {
     using namespace cpplinq;
-    GIVEN("BLAKJSDF")
+    GIVEN("A single genome")
     {
-        WHEN("KJKJDF")
+        neat::Genome g(1, 2, 1);
+        REQUIRE(g.NumNeurons() == 4);
+        REQUIRE(g.NumLinks() == 3);
+
+        neat::InnovationDB idb(g.NeuronGenes(), g.NeuronLinks());
+        WHEN("AddNeuron is called with 100\% probability")
         {
-            THEN("FDKJFDKF")
+            g.AddNeuron(1, idb, 5);
+
+            THEN("Genome gains an extra neuron, and 2 links")
             {
-                typedef int* iptr;
-                int v1[] = {1,2,3,4};
-                char v2[] = {'a','b','c'};
-                iptr v3[1] = {};
-                from_array(v1) >> zip_with(from_array(v2)) >> for_each([](const std::pair<int, char>& p)
-                {
-                    std::cout << "First " << p.first << " and second " << p.second << std::endl;
-                });
-                int v = 5;
-                iptr vptr = &v;
-                iptr res = cpplinq::from_array(v2) >> select([&vptr](char c)
-                    {
-                        if(c == 'd')
-                            return vptr;
-                        else
-                            return static_cast<iptr>(nullptr);
-                    })
-                    >> first_or_default([](iptr i) { return i != nullptr; });
-                if(res)
-                    std::cout << "Unexpected " << res << std::endl;
-                else
-                    std::cout << "Expected!" << std::endl;
-
-
-                neat::GenomeID gid = 5;
-                neat::GenomeID nid = 5;
-                bool result = gid == nid;
-                REQUIRE(result);
-
+                REQUIRE(g.NumNeurons() == 5);
             }
         }
     }

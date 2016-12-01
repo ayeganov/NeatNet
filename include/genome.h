@@ -8,6 +8,8 @@
  */
 
 #include <vector>
+#include <iostream>
+#include <memory>
 
 #include "genes.h"
 #include "innovation.h"
@@ -33,9 +35,6 @@ private:
 
     SpeciesID m_species_id;
 
-    Utils::Random<std::knuth_b> m_random;
-
-
     /**
      * Returns true if the given link is already part of the genome
      * @param neuron_from_id - from neuron id aka neuron providing input
@@ -54,7 +53,7 @@ private:
     bool FindUnlinkedNeurons(NeuronID& neuron_id_from, NeuronID& neuron_id_to, int num_trys);
 
 public:
-    Genome();
+    Genome() {}
 
     Genome(GenomeID id, std::size_t num_inputs, std::size_t num_outputs);
     Genome(GenomeID id,
@@ -63,11 +62,38 @@ public:
            std::size_t num_inputs,
            std::size_t num_outputs);
 
-
     ~Genome();
 
-    Genome(const Genome& g);
-    Genome& operator=(const Genome& g);
+    Genome(const Genome& g)
+    {
+        m_genome_id = g.m_genome_id;
+        m_neuron_genes = g.m_neuron_genes;
+        m_link_genes = g.m_link_genes;
+        m_fitness = g.m_fitness;
+        m_adjusted_fitness = g.m_adjusted_fitness;
+        m_amount_to_spawn = g.m_amount_to_spawn;
+        m_num_inputs = g.m_num_inputs;
+        m_num_outputs = g.m_num_outputs;
+        m_species_id = g.m_species_id;
+//        std::cout << "Copy constr\n";
+    }
+
+    Genome(Genome&& g)
+    {
+        m_genome_id = g.m_genome_id;
+        m_neuron_genes = g.m_neuron_genes;
+        m_link_genes = g.m_link_genes;
+        m_fitness = g.m_fitness;
+        m_adjusted_fitness = g.m_adjusted_fitness;
+        m_amount_to_spawn = g.m_amount_to_spawn;
+        m_num_inputs = g.m_num_inputs;
+        m_num_outputs = g.m_num_outputs;
+        m_species_id = g.m_species_id;
+//        std::cout << "Move constr\n";
+    }
+
+    Genome& operator=(const Genome& g) = default;
+    Genome& operator=(Genome&& g) = default;
 
     bool AddLink(double mutation_prob,
                  double recurrent_prob,
@@ -91,6 +117,7 @@ public:
     Genome Crossover(const Genome& other, const InnovationDB& inno_db, GenomeID genome_id);
 
     void SortLinks();
+
     // overload '<' operator for sorting by fitness - fittest to weakest
     friend bool operator<(const Genome& lhs, const Genome& rhs)
     {
@@ -103,7 +130,7 @@ public:
         return m_neuron_genes;
     }
 
-    std::size_t NumGenes() const
+    std::size_t NumNeurons() const
     {
         return m_neuron_genes.size();
     }
@@ -128,7 +155,12 @@ public:
 
     double AmountToSpawn() const { return m_amount_to_spawn; }
     void SetAmountToSpawn(double to_spawn) { m_amount_to_spawn = to_spawn; }
+
+    void SetSpeciesID(SpeciesID id) { m_species_id = id; }
 };
+
+
+std::string to_string(const Genome& g);
 
 }
 

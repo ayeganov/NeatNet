@@ -16,7 +16,7 @@ Species::Species(Genome& originator, SpeciesID id): m_leader(originator),
 }
 
 //==============================PUBLIC METHODS=================================
-void Species::AddMember(const Genome& new_member)
+void Species::AddMember(Genome& new_member)
 {
     if(new_member.Fitness() > m_leader.Fitness())
     {
@@ -64,7 +64,7 @@ void Species::CalculateSpawnAmount()
 
 Genome* Species::Spawn()
 {
-    static Utils::Random<std::knuth_b> random;
+    auto& random = Utils::DefaultRandom::Instance();
 
     assert(m_members.size() > 0);
     if(m_members.size() == 1)

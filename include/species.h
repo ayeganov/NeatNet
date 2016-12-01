@@ -8,9 +8,9 @@
 namespace neat
 {
 
-const int YoungBonusThreshold = 10;
-const int OldPenaltyThreshold = 15;
-const double SURVIVAL_RATE = 0.2;
+const int YoungBonusThreshold = 5;
+const int OldPenaltyThreshold = 10;
+const double SURVIVAL_RATE = 0.5;
 
 class Species
 {
@@ -30,11 +30,11 @@ private:
 
 
 public:
-    Species(const Genome& originator, SpeciesID id);
+    Species(Genome& originator, SpeciesID id);
 
     void AdjustFitness();
 
-    void AddMember(const Genome& new_member);
+    void AddMember(Genome& new_member);
 
     void Purge();
 
@@ -55,6 +55,8 @@ public:
 
     const Genome& Leader() const { return m_leader; }
     std::size_t Size() const { return m_members.size(); }
+
+    SpeciesID ID() const { return m_id; }
 
 };
 

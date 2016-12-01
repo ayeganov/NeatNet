@@ -37,6 +37,8 @@ enum class NeuronType
 };
 
 
+std::string to_string(const NeuronType nt);
+
 /**
  * Neuron gene definition
  */
@@ -74,7 +76,9 @@ struct LinkGene
     bool IsRecurrent;
     InnovationID InnovID;
 
-    LinkGene() {}
+    LinkGene()
+    {
+    }
 
     LinkGene(NeuronID from,
              NeuronID to,

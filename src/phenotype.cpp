@@ -13,6 +13,14 @@ double sigmoid(double input, double act_response)
     return (1.0 / (1.0 + std::exp(-input / act_response)));
 }
 
+
+NeuralNet::NeuralNet(const Genome& g) : NeuralNet(g.NeuronGenes(),
+                                                  g.NeuronLinks(),
+                                                  1)
+{
+}
+
+
 NeuralNet::NeuralNet(const std::vector<NeuronGene>& neuron_genes,
                      const std::vector<LinkGene>& link_genes,
                      std::size_t depth): m_net_depth(depth)
@@ -35,7 +43,7 @@ NeuralNet::NeuralNet(const std::vector<NeuronGene>& neuron_genes,
             if(np->ID == id)
                 return np;
         }
-        return std::make_shared<Neuron>(nullptr);
+        return std::shared_ptr<Neuron>(nullptr);
     };
 
     //now create the links.

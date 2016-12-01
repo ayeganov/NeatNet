@@ -5,6 +5,7 @@
 #include <memory>
 
 #include "genes.h"
+#include "genome.h"
 
 namespace neat
 {
@@ -72,6 +73,7 @@ public:
           m_net_depth(net_depth)
     {}
 
+    NeuralNet(const Genome& g);
     NeuralNet(const std::vector<NeuronGene>& neuron_genes,
               const std::vector<LinkGene>& link_genes,
               std::size_t depth);
