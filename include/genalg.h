@@ -13,16 +13,16 @@
 namespace neat
 {
 
-const int NUM_GENS_ALLOWED_NO_IMPROV = 10;
+const int NUM_GENS_ALLOWED_NO_IMPROV = 15;
 const int NUM_BEST_GENOMES = 5;
 const double COMPATIBILITY_THRESHOLD = 0.25;
 const std::size_t POPULATION_SIZE = 50;
 const std::size_t MAX_NEURONS = 100;
-const double ADD_NEURON_CHANCE = 0.08;
-const double ADD_LINK_CHANCE = 0.07;
+const double ADD_NEURON_CHANCE = 0.05;
+const double ADD_LINK_CHANCE = 0.3;
 const double ADD_RECUR_LINK_CHANCE = 0.05;
 const double MUTATION_CHANCE = 0.8;
-const double CROSSOVER_CHANCE = 0.7;
+const double CROSSOVER_CHANCE = 0.75;
 const double MAX_PERTURBATION = 0.3;
 const double NEW_WEIGHT_CHANCE = 0.1;
 const double ACTIVATION_MUTATION_CHANCE = 0.1;
@@ -42,7 +42,7 @@ private:
     std::size_t m_generation_count;
     GenomeID m_next_genome_id;
     SpeciesID m_next_species_id;
-    std::vector<Genome*> m_best_genomes;
+    std::vector<Genome> m_best_genomes;
     std::vector<Species> m_species;
     double m_best_ever_fitness;
 
@@ -81,7 +81,8 @@ public:
     std::size_t Generation() { return m_generation_count; }
 
     SNeuralNetPtr BestNN() const;
-    Genome BestGenome() const { return m_genomes[0]; }
+    Genome BestGenome() const { return m_best_genomes[0]; }
+    std::vector<Genome> GetGenomes() const { return m_genomes; }
 
 };
 

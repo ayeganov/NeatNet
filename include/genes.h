@@ -37,7 +37,7 @@ enum class NeuronType
 };
 
 
-std::string to_string(const NeuronType nt);
+std::string to_string(const NeuronType& nt);
 
 /**
  * Neuron gene definition
@@ -64,6 +64,7 @@ struct NeuronGene
     {}
 };
 
+std::string to_string(const NeuronGene& ng);
 
 /**
  * Definition of link between neurons
@@ -103,6 +104,7 @@ struct LinkGene
     }
 };
 
+std::string to_string(const LinkGene& lg);
 
 };
 

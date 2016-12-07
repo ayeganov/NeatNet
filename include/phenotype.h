@@ -16,28 +16,28 @@ enum class UPDATE_TYPE
     ACTIVE
 };
 
-struct Neuron;
-typedef std::shared_ptr<Neuron> SNeuronPtr;
-typedef std::unique_ptr<Neuron> UNeuronPtr;
 
+struct Link;
+struct Neuron;
 class NeuralNet;
 typedef std::shared_ptr<NeuralNet> SNeuralNetPtr;
 
 struct Link
 {
-    SNeuronPtr In;
-    SNeuronPtr Out;
+    Neuron* In;
+    Neuron* Out;
 
     double Weight;
 
     bool IsRecurrent;
-    Link(SNeuronPtr in, SNeuronPtr out, double weight, bool recurrent)
+    Link(Neuron* in, Neuron* out, double weight, bool recurrent)
         : In(in),
           Out(out),
           Weight(weight),
           IsRecurrent(recurrent)
     {}
 };
+
 
 
 struct Neuron
@@ -64,11 +64,11 @@ struct Neuron
 class NeuralNet
 {
 private:
-    std::vector<SNeuronPtr> m_neurons;
+    std::vector<Neuron> m_neurons;
     std::size_t m_net_depth;
 
 public:
-    NeuralNet(std::vector<SNeuronPtr> neurons, std::size_t net_depth)
+    NeuralNet(std::vector<Neuron> neurons, std::size_t net_depth)
         : m_neurons(neurons),
           m_net_depth(net_depth)
     {}
@@ -78,11 +78,11 @@ public:
               const std::vector<LinkGene>& link_genes,
               std::size_t depth);
 
-    ~NeuralNet();
+    std::vector<double> Update(const std::vector<double>& inputs, const UPDATE_TYPE update_type = UPDATE_TYPE::ACTIVE);
 
-    std::vector<double> Update(const std::vector<double>& inputs, const UPDATE_TYPE update_type);
-
+    friend std::string to_string(const NeuralNet& nn);
 };
+
 
 };
 #endif

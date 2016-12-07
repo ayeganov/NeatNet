@@ -15,6 +15,7 @@ InnovationDB::InnovationDB(const std::vector<NeuronGene>& start_neuron_genes,
         Innovation innov(ng, m_next_innovation_id++);
         m_innovations.push_back(innov);
     }
+    m_next_neuron_id += start_neuron_genes.size();
 
     // ... then create link innovations
     for(auto const& lg : start_link_genes)

@@ -87,14 +87,28 @@ public:
     // implicit conversion
     IDType(T value) : m_id(value) {}
 
+    template <typename OtherT, typename OtherMeaning>
+    IDType(IDType<OtherT, OtherMeaning> const& other): m_id(other.m_id)
+    {
+        constexpr bool same_types = std::is_same<Meaning, OtherMeaning>::value;
+        static_assert(same_types, "You can only construct ID's of the same type.");
+    }
+
+    template <typename OtherT, typename OtherMeaning>
+    IDType(IDType<OtherT, OtherMeaning>&& other): m_id(std::move(other.m_id))
+    {
+        constexpr bool same_types = std::is_same<Meaning, OtherMeaning>::value;
+        static_assert(same_types, "You can only construct ID's of the same type.");
+    }
+
     inline operator T () const { return m_id; }
 
     template <typename OtherT, typename OtherMeaning>
-    inline friend bool operator==(IDType<T, Meaning> const& lhs, IDType<OtherT, OtherMeaning> const& rhs)
+    inline bool operator==(IDType<OtherT, OtherMeaning> const& rhs)
     {
         constexpr bool same_types = std::is_same<Meaning, OtherMeaning>::value;
         static_assert(same_types, "You can only compare ID's of the same type.");
-        return lhs.m_id == rhs.m_id;
+        return m_id == rhs.m_id;
     }
 
     template <typename OtherT, typename OtherMeaning>
@@ -107,6 +121,20 @@ public:
         {
             m_id = other.m_id;
         }
+        return *this;
+    }
+
+    template <typename OtherT, typename OtherMeaning>
+    inline IDType<T, Meaning>& operator=(IDType<OtherT, OtherMeaning>&& other)
+    {
+        constexpr bool same_types = std::is_same<Meaning, OtherMeaning>::value;
+        static_assert(same_types, "You can only assign ID's of the same type.");
+
+        if(m_id != other.m_id)
+        {
+            m_id = std::move(other.m_id);
+        }
+        other.m_id = 0xDEADBEEF;
         return *this;
     }
 

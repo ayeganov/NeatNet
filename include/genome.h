@@ -75,7 +75,6 @@ public:
         m_num_inputs = g.m_num_inputs;
         m_num_outputs = g.m_num_outputs;
         m_species_id = g.m_species_id;
-//        std::cout << "Copy constr\n";
     }
 
     Genome(Genome&& g)
@@ -89,7 +88,6 @@ public:
         m_num_inputs = g.m_num_inputs;
         m_num_outputs = g.m_num_outputs;
         m_species_id = g.m_species_id;
-//        std::cout << "Move constr\n";
     }
 
     Genome& operator=(const Genome& g) = default;
@@ -101,7 +99,7 @@ public:
                  int num_trys_recurrent,
                  int num_trys_add_link);
 
-    void AddNeuron(double mutation_prob,
+    bool AddNeuron(double mutation_prob,
                    InnovationDB& innovation,
                    int num_trys_to_find_old_link);
 

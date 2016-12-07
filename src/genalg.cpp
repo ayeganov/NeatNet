@@ -21,7 +21,8 @@ GenAlg::GenAlg(std::size_t pop_size,
                std::size_t num_inputs,
                std::size_t num_outputs): m_population_size(pop_size),
                                          m_generation_count(0),
-                                         m_next_species_id(2),
+                                         m_next_genome_id(0),
+                                         m_next_species_id(0),
                                          m_best_genomes(),
                                          m_best_ever_fitness(0.0)
 {
@@ -74,8 +75,7 @@ SNeuralNetPtr GenAlg::BestNN() const
     using std::to_string;
     if(m_best_genomes.size() > 0)
     {
-        std::cout << "Best: " << to_string(m_genomes[0]) << std::endl;
-        return std::make_shared<NeuralNet>(m_genomes[0]);
+        return std::make_shared<NeuralNet>(m_best_genomes[0]);
     }
     else
     {
@@ -130,25 +130,23 @@ void GenAlg::UpdateGenomeScores(const std::vector<double>& fitness_scores)
 
 void GenAlg::UpdateBestGenomes()
 {
+    m_best_genomes.clear();
     m_best_ever_fitness = std::max(m_best_ever_fitness, m_genomes[0].Fitness());
 
     for(int i = 0; i < NUM_BEST_GENOMES; ++i)
     {
-        m_best_genomes.push_back(&m_genomes[i]);
+        m_best_genomes.push_back(m_genomes[i]);
     }
 }
 
 void GenAlg::SpeciateGenomes()
 {
-    // TODO: Remove stat stuff
-    Utils::RunningStat rs;
     for(auto& genome : m_genomes)
     {
         bool is_new_species = true;
         for(auto& species : m_species)
         {
             double compat_score = genome.CalculateCompatabilityScore(species.Leader());
-            rs.Push(compat_score);
             if(compat_score > COMPATIBILITY_THRESHOLD)
             {
                 species.AddMember(genome);
@@ -165,8 +163,7 @@ void GenAlg::SpeciateGenomes()
         }
     }
 
-    std::cout << "Speciate score Gen " << m_generation_count << ": mean " << rs.Mean() << " std "
-        << rs.StandardDeviation() << " max " << rs.MaxValue() << " min " << rs.MinValue() << std::endl;
+    std::sort(m_species.begin(), m_species.end());
 }
 
 void GenAlg::UpdateSpeciesFitness()

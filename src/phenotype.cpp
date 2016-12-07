@@ -10,40 +10,35 @@ namespace neat
 
 double sigmoid(double input, double act_response)
 {
-    return (1.0 / (1.0 + std::exp(-input / act_response)));
+    return (1.0 / (1.0 + std::exp(-4.9 * input)));
 }
 
 
 NeuralNet::NeuralNet(const Genome& g) : NeuralNet(g.NeuronGenes(),
                                                   g.NeuronLinks(),
                                                   1)
-{
-}
+{}
 
 
 NeuralNet::NeuralNet(const std::vector<NeuronGene>& neuron_genes,
                      const std::vector<LinkGene>& link_genes,
-                     std::size_t depth): m_net_depth(depth)
+                     std::size_t depth): m_neurons(),
+                                         m_net_depth(depth)
 {
     //first, create all the required neurons
-    m_neurons = cpplinq::from(neuron_genes)
-    >> cpplinq::select([](const NeuronGene& ng)
-        {
-            SNeuronPtr neuron_ptr = std::make_shared<Neuron>(ng.Type,
-                                                             ng.ID,
-                                                             ng.ActivationResponse);
-            return neuron_ptr;
-        })
-    >> cpplinq::to_vector();
+    for(const auto& ng : neuron_genes)
+    {
+        m_neurons.push_back(Neuron(ng.Type, ng.ID, ng.ActivationResponse));
+    }
 
     auto get_neuron_ptr = [this](NeuronID id)
     {
         for(auto& np : this->m_neurons)
         {
-            if(np->ID == id)
-                return np;
+            if(np.ID == id)
+                return &np;
         }
-        return std::shared_ptr<Neuron>(nullptr);
+        return static_cast<Neuron*>(nullptr);
     };
 
     //now create the links.
@@ -63,12 +58,6 @@ NeuralNet::NeuralNet(const std::vector<NeuronGene>& neuron_genes,
 }
 
 
-NeuralNet::~NeuralNet()
-{
-
-}
-
-
 std::vector<double> NeuralNet::Update(const std::vector<double>& inputs, const UPDATE_TYPE update_type)
 {
     std::vector<double> outputs;
@@ -80,21 +69,22 @@ std::vector<double> NeuralNet::Update(const std::vector<double>& inputs, const U
         outputs.clear();
         int neuron_idx = 0;
 
-        while(m_neurons[neuron_idx]->Type == NeuronType::INPUT)
+        // The expected order of neurons: INPUT .. INPUT, BIAS, HIDDEN .. HIDDEN
+        while(m_neurons[neuron_idx].Type == NeuronType::INPUT)
         {
-            m_neurons[neuron_idx]->OutputSignal = inputs[neuron_idx];
+            m_neurons[neuron_idx].OutputSignal = inputs[neuron_idx];
             ++neuron_idx;
         }
 
         // set the bias neuron output to 1
-        m_neurons[neuron_idx++]->OutputSignal = 1;
+        m_neurons[neuron_idx++].OutputSignal = 1;
 
         // step through the network a neuron at a time
         while (neuron_idx < m_neurons.size())
         {
             //sum this neuron's inputs by iterating through all the links into
             //the neuron
-            double sum = cpplinq::from(m_neurons[neuron_idx]->InLinks)
+            double sum = cpplinq::from(m_neurons[neuron_idx].InLinks)
                 >> cpplinq::select([](const Link& link)
                     {
                         return link.Weight * link.In->OutputSignal;
@@ -103,13 +93,13 @@ std::vector<double> NeuralNet::Update(const std::vector<double>& inputs, const U
 
             //now put the sum through the activation function and assign the
             //value to this neuron's output
-            m_neurons[neuron_idx]->OutputSignal =
-                sigmoid(sum, m_neurons[neuron_idx]->ActivationResponse);
+            m_neurons[neuron_idx].OutputSignal =
+                sigmoid(sum, m_neurons[neuron_idx].ActivationResponse);
 
-            if (m_neurons[neuron_idx]->Type == NeuronType::OUTPUT)
+            if (m_neurons[neuron_idx].Type == NeuronType::OUTPUT)
             {
                 //add to our outputs
-                outputs.push_back(m_neurons[neuron_idx]->OutputSignal);
+                outputs.push_back(m_neurons[neuron_idx].OutputSignal);
             }
 
             //next neuron
@@ -121,10 +111,22 @@ std::vector<double> NeuralNet::Update(const std::vector<double>& inputs, const U
     {
         for(auto& neuron : m_neurons)
         {
-            neuron->OutputSignal = 0.0;
+            neuron.OutputSignal = 0.0;
         }
     }
     return outputs;
+}
+
+
+std::string to_string(const NeuralNet& nn)
+{
+    using std::to_string;
+    std::string result;
+    for(auto& neuron : nn.m_neurons)
+    {
+
+    }
+    return result;
 }
 
 };

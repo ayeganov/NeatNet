@@ -68,8 +68,7 @@ Genome::Genome(GenomeID id,
                                          m_amount_to_spawn(0),
                                          m_num_inputs(num_inputs),
                                          m_num_outputs(num_outputs)
-{
-}
+{}
 
 
 Genome::~Genome()
@@ -78,14 +77,14 @@ Genome::~Genome()
 
 
 //================================ PUBLIC METHODS =================================
-void Genome::AddNeuron(double mutation_prob,
+bool Genome::AddNeuron(double mutation_prob,
                        InnovationDB& inno_db,
                        int num_trys_to_find_old_link)
 {
     Utils::DefaultRandom& random = Utils::DefaultRandom::Instance();
     if(random.RandomDouble() > mutation_prob)
     {
-        return;
+        return false;
     }
 
     auto find_link_idx = [&](int upper_bound)
@@ -106,25 +105,29 @@ void Genome::AddNeuron(double mutation_prob,
     };
 
     int chosen_link = -1;
+
     // if the genome is small then prefer older links to avoid a chaining
     // effect.
     const int SizeThreshold = m_num_inputs + m_num_outputs + 5;
     if(m_neuron_genes.size() < SizeThreshold)
     {
-        int upper_bound = m_neuron_genes.size() - 1 - (int)std::sqrt(m_neuron_genes.size());
+        int upper_bound = m_link_genes.size() - 1 - (int)std::sqrt(m_link_genes.size());
         while(num_trys_to_find_old_link-- && chosen_link < 0)
         {
             chosen_link = find_link_idx(upper_bound);
         }
-        // failed to find a good old link
-        if(chosen_link == -1) return;
     }
-    else
+
+    int attempts = 5;
+    // if couldn't find an older link then go all out
+    while(chosen_link == -1 && attempts--)
     {
-        while(chosen_link == -1)
-        {
-            chosen_link = find_link_idx(m_neuron_genes.size());
-        }
+        chosen_link = find_link_idx(m_link_genes.size()-1);
+    }
+
+    if(chosen_link == -1)
+    {
+        return false;
     }
 
     auto& link = m_link_genes[chosen_link];
@@ -160,7 +163,7 @@ void Genome::AddNeuron(double mutation_prob,
    */
     if(inno_id >= 0)
     {
-        auto neuron_id = inno_db.GetNeuronID(inno_id);
+        NeuronID neuron_id = inno_db.GetNeuronID(inno_id);
         auto neuron_id_match = [neuron_id](const NeuronGene& neuron)
         {
             return neuron.ID == neuron_id;
@@ -188,7 +191,7 @@ void Genome::AddNeuron(double mutation_prob,
         InnovationID link_id = inno_db.AddLinkInnovation(from, neuron_id);
         LinkGene bottom_link(from,
                              neuron_id,
-                             random.RandomClamped<double>(),
+                             1.0,
                              true,
                              link_id);
         m_link_genes.push_back(bottom_link);
@@ -200,7 +203,6 @@ void Genome::AddNeuron(double mutation_prob,
                           true,
                           link_id);
         m_link_genes.push_back(top_link);
-
     }
     else
     {
@@ -218,7 +220,9 @@ void Genome::AddNeuron(double mutation_prob,
         NeuronGene new_neuron(NeuronType::HIDDEN, neuron_id, new_depth, new_width);
         m_neuron_genes.push_back(new_neuron);
     }
+    return true;
 }
+
 
 bool Genome::AddLink(double mutation_prob,
                      double recurrent_prob,
@@ -243,7 +247,7 @@ bool Genome::AddLink(double mutation_prob,
     }
     else
     {
-        assert(neuron_id_from >=0 && neuron_id_to >= 0);
+        assert(neuron_id_from >= 0 && neuron_id_to >= 0);
 
         auto is_recurrent_link = [&](NeuronID neuron_id1, NeuronID neuron_id2) {
             auto& neuron1 = m_neuron_genes[GetNeuronIndex(neuron_id1)];
@@ -374,7 +378,7 @@ double Genome::CalculateCompatabilityScore(const Genome& other) const
     //these are multipliers used to tweak the final score.
     const double mDisjoint = 1;
     const double mExcess   = 1;
-    const double mMatched  = 0.38;
+    const double mMatched  = 0.4;
 
     //finally calculate the scores
     double score = (mExcess * num_excess/(double)longest) +
@@ -518,30 +522,12 @@ std::string to_string(const Genome& genome)
 {
     using std::to_string;
     std::string result("");
+    result = "ID: " + to_string(genome.ID()) + " ";
     for(auto& ng : genome.NeuronGenes())
     {
         result += to_string(ng.Type) + ", ";
     }
-    return result;
-}
-
-std::string to_string(const NeuronType nt)
-{
-    switch(nt)
-    {
-        case NeuronType::INPUT:
-            return "INPUT";
-        case NeuronType::HIDDEN:
-            return "HIDDEN";
-        case NeuronType::OUTPUT:
-            return "OUTPUT";
-        case NeuronType::BIAS:
-            return "BIAS";
-        case NeuronType::NONE:
-            return "NONE";
-        default:
-            return "UNKNOWN";
-    }
+    return std::move(result);
 }
 
 //========================================== PRIVATE METHODS ===============================
@@ -580,6 +566,7 @@ bool Genome::FindUnlinkedNeurons(NeuronID& neuron_id_from, NeuronID& neuron_id_t
 {
     auto& random = Utils::DefaultRandom::Instance();
     bool result = false;
+
     auto is_acceptable = [&](NeuronGene& neuron_from, NeuronGene& neuron_to)
     {
         return !IsExistingLink(neuron_from.ID, neuron_to.ID)
