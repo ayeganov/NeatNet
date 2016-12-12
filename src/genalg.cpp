@@ -1,7 +1,5 @@
 #include "cpplinq.hpp"
 
-#include <iostream>
-
 #include "genalg.h"
 #include "phenotype.h"
 #include "utils.h"

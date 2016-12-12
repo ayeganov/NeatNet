@@ -1,12 +1,4 @@
 {
-    "FPS": 60,
-    "MaxTurnRate": 0.2,
-    "SweeperScale": 5,
-    "NumSensors": 5,
-    "SensorRange": 25,
-    "NumSweepers": 50,
-    "NumTicks": 2000,
-    "CellSize": 20,
     "NumAddLinkAttempts": 5,
     "SurvivalRate": 0.2,
     "NumGensAllowedNoImprovement": 15,
