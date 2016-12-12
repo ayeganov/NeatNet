@@ -8,6 +8,25 @@
  * structures are composed together to create a genome.
  */
 
+#include "utils.h"
+
+namespace neat
+{
+
+namespace internal
+{
+    struct NeuronIDTag {};
+    struct GenomeIDTag {};
+    struct InnovationIDTag {};
+    struct SpeciesIDTag {};
+}
+
+typedef Utils::IDType<int, internal::NeuronIDTag> NeuronID;
+typedef Utils::IDType<int, internal::GenomeIDTag> GenomeID;
+typedef Utils::IDType<int, internal::InnovationIDTag> InnovationID;
+typedef Utils::IDType<int, internal::SpeciesIDTag> SpeciesID;
+
+
 enum class NeuronType
 {
     INPUT,
@@ -18,19 +37,21 @@ enum class NeuronType
 };
 
 
+std::string to_string(const NeuronType& nt);
+
 /**
  * Neuron gene definition
  */
 struct NeuronGene
 {
     NeuronType Type;
-    int ID;
+    NeuronID ID;
     bool IsRecurrent;
     double ActivationResponse;
     double SplitY, SplitX;
 
     NeuronGene(NeuronType type,
-               int id,
+               NeuronID id,
                double y,
                double x,
                bool recurrent=false)
@@ -38,33 +59,39 @@ struct NeuronGene
       ID(id),
       SplitY(y),
       SplitX(x),
-      ActivationResponse(1)
+      ActivationResponse(1),
+      IsRecurrent(recurrent)
     {}
 };
 
+std::string to_string(const NeuronGene& ng);
 
 /**
  * Definition of link between neurons
  */
 struct LinkGene
 {
-    int FromNeuronID, ToNeuronID;
+    NeuronID FromNeuronID, ToNeuronID;
     double Weight;
     bool IsEnabled;
     bool IsRecurrent;
-    int InnovationID;
+    InnovationID InnovID;
 
-    LinkGene(int from,
-             int to,
+    LinkGene()
+    {
+    }
+
+    LinkGene(NeuronID from,
+             NeuronID to,
              double weight,
              bool enabled,
-             int innovation_id,
+             neat::InnovationID innovation_id,
              bool recurrent=false)
     : FromNeuronID(from),
       ToNeuronID(to),
       Weight(weight),
       IsEnabled(enabled),
-      InnovationID(innovation_id),
+      InnovID(innovation_id),
       IsRecurrent(recurrent)
     {}
 
@@ -73,10 +100,12 @@ struct LinkGene
      */
     friend bool operator<(const LinkGene& lhs, const LinkGene& rhs)
     {
-        return lhs.InnovationID < rhs.InnovationID;
+        return lhs.InnovID < rhs.InnovID;
     }
 };
 
+std::string to_string(const LinkGene& lg);
 
+};
 
 #endif
