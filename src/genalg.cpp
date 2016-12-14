@@ -27,10 +27,10 @@ GenAlg::GenAlg(std::size_t num_inputs,
     m_genomes = range(0, m_params.PopulationSize()) >> select(
         [&](int _)
             {
-                return Genome(m_next_genome_id++, num_inputs, num_outputs, &params);
+                return Genome(m_next_genome_id++, num_inputs, num_outputs, &m_params);
             })
         >> to_vector();
-    Genome tmp(1, num_inputs, num_outputs, &params);
+    Genome tmp(1, num_inputs, num_outputs, &m_params);
     m_inno_db = InnovationDB(tmp.NeuronGenes(), tmp.NeuronLinks());
 }
 
@@ -218,7 +218,7 @@ std::vector<Genome> GenAlg::CreateNewPopulation()
     auto population_size = m_params.PopulationSize();
 
     auto total_num_spawned = new_pop.size();
-    for(auto species : m_species)
+    for(auto& species : m_species)
     {
         // break out if the population is large enough
         if(total_num_spawned >= population_size) break;
