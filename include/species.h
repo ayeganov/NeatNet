@@ -2,15 +2,12 @@
 #define __SPECIES_H__
 
 #include "genome.h"
+#include "params.h"
 
 #include <vector>
 
 namespace neat
 {
-
-const int YoungBonusThreshold = 5;
-const int OldPenaltyThreshold = 10;
-const double SURVIVAL_RATE = 0.5;
 
 class Species
 {
@@ -28,9 +25,11 @@ private:
 
     double m_spawns_required;
 
+    Params* m_params;
+
 
 public:
-    Species(Genome& originator, SpeciesID id);
+    Species(Genome& originator, SpeciesID id, Params* params);
 
     void AdjustFitness();
 
