@@ -108,8 +108,16 @@ void GenAlg::PurgeSpecies()
 {
     auto current_species = m_species.begin();
     auto num_gens_allowed_no_improv = m_params.NumGensAllowedNoImprov();
+    double required_to_spawn = 0.0;
     while(current_species != m_species.end())
     {
+        // once we have enough species to create a new generation - remove all others
+        if(required_to_spawn >= m_params.PopulationSize())
+        {
+            current_species = m_species.erase(current_species);
+            continue;
+        }
+
         current_species->Purge();
 
         if(current_species->GensNoImprovement() > num_gens_allowed_no_improv &&
@@ -118,6 +126,7 @@ void GenAlg::PurgeSpecies()
             current_species = m_species.erase(current_species);
             continue;
         }
+        required_to_spawn += current_species->SpawnsRequired();
         ++current_species;
     }
 }
