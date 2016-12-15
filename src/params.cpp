@@ -93,18 +93,36 @@ void set_value(const nlohmann::json& config, std::string name, T& value)
     }
 }
 
-Params::Params(std::string config_path)
+Params::Params(const std::string& config_path): Params()
 {
     using json = nlohmann::json;
 
-    if(is_file_exist(config_path))
+    if(!is_file_exist(config_path))
     {
         throw new std::invalid_argument("Path " + config_path + " doesn't exist");
     }
+    std::fstream in(config_path);
+    json config = json::parse(in);
+    InitValues(config);
+}
+
+Params::Params(nlohmann::json& json_obj): Params()
+{
+    InitValues(json_obj);
+}
+
+Params Params::FromString(std::string params)
+{
+    using json = nlohmann::json;
+    json json_obj = json::parse(params);
+    Params p(json_obj);
+    return p;
+}
 
 
-    json config(config_path);
-
+// ============================ PRIVATE METHODS =====================================
+void Params::InitValues(nlohmann::json& config)
+{
     set_value(config, "ActivationMutationRate", m_activation_mutation_chance);
     set_value(config, "ChanceAddLink", m_add_link_chance);
     set_value(config, "ChanceAddNeuron", m_add_neuron_chance);
@@ -131,5 +149,6 @@ Params::Params(std::string config_path)
     set_value(config, "YoungBonusAgeThreshhold", m_young_bonus_threshold);
     set_value(config, "YoungFitnessBonus", m_young_bonus_scaler);
 }
+
 
 };

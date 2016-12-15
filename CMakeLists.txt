@@ -13,5 +13,11 @@ add_executable(test_innovation ${test_innovation_sources})
 set(test_xor_sources "./src/genalg.cpp" "./test/test_xor.cpp" "./src/genes.cpp" "./src/genome.cpp" "./src/innovation.cpp" "./src/phenotype.cpp" "./src/species.cpp" "./src/params.cpp")
 add_executable(test_xor ${test_xor_sources})
 
+set(test_params_sources "./src/params.cpp" "./test/test_params.cpp")
+set(test_params_json "./test/test_params.json")
+file(COPY ${test_params_json} DESTINATION ${CMAKE_BINARY_DIR})
+add_executable(test_params ${test_params_sources})
+
+
 #add_library(NeatNet SHARED src/genome.cpp)
 #add_executable(test_neat_net ${TEST_SOURCES})

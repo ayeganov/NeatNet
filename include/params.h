@@ -40,11 +40,14 @@ private:
     double m_excess_scaler;
     double m_match_scaler;
 
+    void InitValues(nlohmann::json& json_obj);
+
 public:
     Params();
-    Params(std::string config_path);
+    Params(nlohmann::json& json_obj);
+    Params(const std::string& config_path);
     Params(const Params& params);
-
+    static Params FromString(std::string params);
 
     // Getters
     std::size_t NumGensAllowedNoImprov() const { return m_num_gens_allowed_no_improv; }
