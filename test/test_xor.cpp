@@ -45,7 +45,7 @@ SCENARIO("GenAlg gets initialized with population size of 150, 2 inputs and 1 ou
             int generations = 200;
             for(int gen = 0; gen < generations && !solved; ++gen)
             {
-                std::vector<double> fitnesses;
+                std::vector<double> fitnesses{};
                 for(auto brain : brains)
                 {
                     double fitness = xor_fitness(brain);

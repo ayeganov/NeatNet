@@ -67,6 +67,8 @@ private:
     std::vector<Neuron> m_neurons;
     std::size_t m_net_depth;
 
+    std::size_t GetDepth(const Neuron* n, std::size_t depth) const;
+
 public:
     NeuralNet(std::vector<Neuron> neurons, std::size_t net_depth)
         : m_neurons(neurons),
@@ -79,6 +81,8 @@ public:
               std::size_t depth);
 
     std::vector<double> Update(const std::vector<double>& inputs, const UPDATE_TYPE update_type = UPDATE_TYPE::ACTIVE);
+
+    std::size_t GetDepth() const;
 
     friend std::string to_string(const NeuralNet& nn);
 };
