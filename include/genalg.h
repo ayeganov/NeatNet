@@ -52,7 +52,7 @@ public:
 
     GenAlg(std::size_t num_inputs,
            std::size_t num_outputs,
-           Params params);
+           const Params& params);
 
     std::vector<SNeuralNetPtr> Epoch(const std::vector<double>& fitness_scores);
     std::vector<SNeuralNetPtr> CreateNeuralNetworks();

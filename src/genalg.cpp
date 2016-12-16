@@ -17,7 +17,7 @@ using namespace cpplinq;
  */
 GenAlg::GenAlg(std::size_t num_inputs,
                std::size_t num_outputs,
-               Params params): m_generation_count(0),
+               const Params& params): m_generation_count(0),
                                          m_next_genome_id(0),
                                          m_next_species_id(0),
                                          m_best_genomes(),
