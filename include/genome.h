@@ -8,13 +8,12 @@
  */
 
 #include <vector>
-#include <iostream>
 #include <memory>
 
 #include "genes.h"
 #include "innovation.h"
 #include "utils.h"
-
+#include "params.h"
 
 namespace neat
 {
@@ -34,6 +33,8 @@ private:
     std::size_t m_num_outputs;
 
     SpeciesID m_species_id;
+
+    Params* m_params;
 
     /**
      * Returns true if the given link is already part of the genome
@@ -55,14 +56,13 @@ private:
 public:
     Genome() {}
 
-    Genome(GenomeID id, std::size_t num_inputs, std::size_t num_outputs);
+    Genome(GenomeID id, std::size_t num_inputs, std::size_t num_outputs, Params* params);
     Genome(GenomeID id,
            std::vector<NeuronGene> neurons,
            std::vector<LinkGene> links,
            std::size_t num_inputs,
-           std::size_t num_outputs);
-
-    ~Genome();
+           std::size_t num_outputs,
+           Params* params);
 
     Genome(const Genome& g)
     {
@@ -75,6 +75,7 @@ public:
         m_num_inputs = g.m_num_inputs;
         m_num_outputs = g.m_num_outputs;
         m_species_id = g.m_species_id;
+        m_params = g.m_params;
     }
 
     Genome(Genome&& g)
@@ -88,6 +89,7 @@ public:
         m_num_inputs = g.m_num_inputs;
         m_num_outputs = g.m_num_outputs;
         m_species_id = g.m_species_id;
+        m_params = g.m_params;
     }
 
     Genome& operator=(const Genome& g) = default;
@@ -128,12 +130,18 @@ public:
         return m_neuron_genes;
     }
 
-    std::size_t NumNeurons() const
+    inline std::size_t NumNeurons() const
     {
         return m_neuron_genes.size();
     }
 
-    std::size_t NumLinks() const
+    inline std::size_t NumHiddenNeurons() const
+    {
+        // don't count input, output and bias neurons
+        return m_neuron_genes.size() - m_num_inputs - m_num_outputs - 1;
+    }
+
+    inline std::size_t NumLinks() const
     {
         return m_link_genes.size();
     }

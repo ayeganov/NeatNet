@@ -7,6 +7,7 @@
 #include "cpplinq.hpp"
 #include "genes.h"
 #include "genome.h"
+#include "params.h"
 
 SCENARIO("Genome gets initialized with correct number of neurons", "[GenomeInit]")
 {
@@ -17,7 +18,8 @@ SCENARIO("Genome gets initialized with correct number of neurons", "[GenomeInit]
         int inputs = 3;
         int outputs = 2;
 
-        neat::Genome g(ID, inputs, outputs);
+        neat::Params p;
+        neat::Genome g(ID, inputs, outputs, &p);
 
         WHEN("Genome is created")
         {
@@ -116,7 +118,8 @@ SCENARIO("A neuron is added to a genome", "[AddNeuron]")
         neat::GenomeID id = 1;
         std::size_t inputs = 2;
         std::size_t outputs = 1;
-        neat::Genome g(id, inputs, outputs);
+        neat::Params p;
+        neat::Genome g(id, inputs, outputs, &p);
 
         REQUIRE(g.NumNeurons() == 4);
         REQUIRE(g.NumLinks() == 3);
@@ -184,7 +187,8 @@ SCENARIO("A link is added to the genome", "[AddLink]")
     using namespace cpplinq;
     GIVEN("A single genome with 2 inputs and 1 output and 3 hidden neurons")
     {
-        neat::Genome g(1, 2, 1);
+        neat::Params p;
+        neat::Genome g(1, 2, 1, &p);
 
         neat::InnovationDB idb(g.NeuronGenes(), g.NeuronLinks());
         range(0, 3) >> for_each([&g, &idb](int _) { g.AddNeuron(1.0, idb, 5); });

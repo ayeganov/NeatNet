@@ -8,13 +8,14 @@ namespace neat
 {
 
 //=========================== Constructors ===================================
-Genome::Genome(GenomeID id, std::size_t inputs, std::size_t outputs):m_genome_id(id),
+Genome::Genome(GenomeID id, std::size_t inputs, std::size_t outputs, Params* params):m_genome_id(id),
                                                m_fitness(0),
                                                m_adjusted_fitness(0),
                                                m_num_inputs(inputs),
                                                m_num_outputs(outputs),
                                                m_amount_to_spawn(0),
-                                               m_species_id(0)
+                                               m_species_id(0),
+                                               m_params(params)
 {
     double input_row_slice = 1 / (double)(inputs+2);
 
@@ -59,20 +60,17 @@ Genome::Genome(GenomeID id,
                 std::vector<NeuronGene> neuron_genes,
                 std::vector<LinkGene> link_genes,
                 std::size_t num_inputs,
-                std::size_t num_outputs):m_genome_id(id),
-                                         m_neuron_genes(neuron_genes),
-                                         m_link_genes(link_genes),
-                                         m_fitness(0),
-                                         m_adjusted_fitness(0),
-                                         m_amount_to_spawn(0),
-                                         m_num_inputs(num_inputs),
-                                         m_num_outputs(num_outputs)
+                std::size_t num_outputs,
+                Params* params):m_genome_id(id),
+                                m_neuron_genes(neuron_genes),
+                                m_link_genes(link_genes),
+                                m_fitness(0),
+                                m_adjusted_fitness(0),
+                                m_amount_to_spawn(0),
+                                m_num_inputs(num_inputs),
+                                m_num_outputs(num_outputs),
+                                m_params(params)
 {}
-
-
-Genome::~Genome()
-{
-}
 
 
 //================================ PUBLIC METHODS =================================
@@ -374,15 +372,10 @@ double Genome::CalculateCompatabilityScore(const Genome& other) const
     //fix num matched if no links matched
     num_matched = std::max(num_matched, 1);
 
-    //these are multipliers used to tweak the final score.
-    const double mDisjoint = 1;
-    const double mExcess   = 1;
-    const double mMatched  = 0.4;
-
     //finally calculate the scores
-    double score = (mExcess * num_excess/(double)longest) +
-                   (mDisjoint * num_disjoint/(double)longest) +
-                   (mMatched * weight_difference / num_matched);
+    double score = (m_params->ExcessScaler() * num_excess/(double)longest) +
+                   (m_params->DisjointScaler() * num_disjoint/(double)longest) +
+                   (m_params->MatchScaler() * weight_difference / num_matched);
 
     return score;
 }
@@ -506,7 +499,8 @@ Genome Genome::Crossover(const Genome& mom, const InnovationDB& inno_db, GenomeI
                 baby_neurons,
                 baby_links,
                 m_num_inputs,
-                m_num_outputs);
+                m_num_outputs,
+                m_params);
 
     return baby;
 }
@@ -528,6 +522,7 @@ std::string to_string(const Genome& genome)
     }
     return std::move(result);
 }
+
 
 //========================================== PRIVATE METHODS ===============================
 bool Genome::FindNonRecurrentNeuron(NeuronID& neuron_id_from, NeuronID& neuron_id_to, double prob, int num_trys)

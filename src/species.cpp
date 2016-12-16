@@ -5,12 +5,13 @@
 namespace neat
 {
 
-Species::Species(Genome& originator, SpeciesID id): m_leader(originator),
-                                                    m_id(id),
-                                                    m_members(),
-                                                    m_gens_no_improvement(0),
-                                                    m_age(0),
-                                                    m_spawns_required(0)
+Species::Species(Genome& originator, SpeciesID id, Params* params): m_leader(originator),
+                                                                    m_id(id),
+                                                                    m_members(),
+                                                                    m_gens_no_improvement(0),
+                                                                    m_age(0),
+                                                                    m_spawns_required(0),
+                                                                    m_params(params)
 {
     m_members.push_back(&originator);
 }
@@ -40,13 +41,13 @@ void Species::AdjustFitness()
     {
         double fitness = genome->Fitness();
 
-        if(m_age < YoungBonusThreshold)
+        if(m_age < m_params->YoungBonusThreshold())
         {
-            fitness *= 1.3;
+            fitness *= m_params->YoungBonusScaler();
         }
-        if(m_age > OldPenaltyThreshold)
+        if(m_age > m_params->OldPenaltyThreshold())
         {
-            fitness *= .7;
+            fitness *= m_params->OldPenaltyScaler();
         }
         double shared_fitness = fitness / m_members.size();
         genome->SetAjustedFitness(shared_fitness);
@@ -73,7 +74,7 @@ Genome* Species::Spawn()
     }
     else
     {
-        int max_idx = m_members.size() * SURVIVAL_RATE;
+        int max_idx = m_members.size() * m_params->SurvivalRate();
         int the_one = random.RandomClamped(0, max_idx);
         return cpplinq::from(m_members) >> cpplinq::element_at_or_default(the_one);
     }

@@ -128,4 +128,39 @@ std::string to_string(const NeuralNet& nn)
     return result;
 }
 
+
+std::size_t NeuralNet::GetDepth() const
+{
+    using namespace cpplinq;
+    auto start_neurons = from(m_neurons) >> where([](const Neuron& n)
+        {
+            return n.Type == NeuronType::BIAS || n.Type == NeuronType::INPUT;
+        })
+    >> to_vector();
+
+    std::size_t final_depth = 0;
+
+    for(auto& n : start_neurons)
+    {
+        final_depth = std::max(final_depth, GetDepth(&n, 1));
+    }
+    return final_depth;
+}
+
+
+//=================================PRIVATE METHODS===============================
+std::size_t NeuralNet::GetDepth(const Neuron* n, std::size_t depth) const
+{
+    if(n->Type == NeuronType::OUTPUT) return depth;
+
+    std::size_t final_depth = 0;
+    for(auto& link : n->OutLinks)
+    {
+        if(link.IsRecurrent) continue;
+        final_depth = std::max(final_depth, GetDepth(link.Out, depth + 1));
+    }
+    return final_depth;
+}
+
+
 };
