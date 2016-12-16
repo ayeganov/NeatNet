@@ -252,7 +252,7 @@ std::vector<Genome> GenAlg::CreateNewPopulation()
                 baby.SetID(m_next_genome_id++);
             }
 
-            if(baby.NumNeurons() < m_params.MaxNeurons()) baby.AddNeuron(m_params.AddNeuronChance(),
+            if(baby.NumHiddenNeurons() < m_params.MaxNeurons()) baby.AddNeuron(m_params.AddNeuronChance(),
                                                              m_inno_db,
                                                              m_params.NumFindOldLinkAttempts());
             baby.AddLink(m_params.AddLinkChance(),

@@ -135,6 +135,12 @@ public:
         return m_neuron_genes.size();
     }
 
+    inline std::size_t NumHiddenNeurons() const
+    {
+        // don't count input, output and bias neurons
+        return m_neuron_genes.size() - m_num_inputs - m_num_outputs - 1;
+    }
+
     inline std::size_t NumLinks() const
     {
         return m_link_genes.size();
