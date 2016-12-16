@@ -126,7 +126,7 @@ void GenAlg::PurgeSpecies()
             current_species = m_species.erase(current_species);
             continue;
         }
-        required_to_spawn += current_species->SpawnsRequired();
+        required_to_spawn += std::max(current_species->SpawnsRequired(), 1.0);
         ++current_species;
     }
 }
