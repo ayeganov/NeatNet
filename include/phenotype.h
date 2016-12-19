@@ -4,11 +4,14 @@
 #include <vector>
 #include <memory>
 
+#include <opencv2/core/core.hpp>
+
 #include "genes.h"
 #include "genome.h"
 
 namespace neat
 {
+
 
 enum class UPDATE_TYPE
 {
@@ -39,7 +42,6 @@ struct Link
 };
 
 
-
 struct Neuron
 {
     NeuronType Type;
@@ -48,15 +50,21 @@ struct Neuron
     std::vector<Link> OutLinks;
     double ActivationResponse;
     double OutputSignal;
+    double SplitX;
+    double SplitY;
 
     Neuron(NeuronType type,
            NeuronID id,
-           double act_response): Type(type),
+           double act_response,
+           double splitx,
+           double splity): Type(type),
                                  ID(id),
                                  InLinks(),
                                  OutLinks(),
                                  ActivationResponse(act_response),
-                                 OutputSignal(0)
+                                 OutputSignal(0),
+                                 SplitX(splitx),
+                                 SplitY(splity)
     {}
 };
 
@@ -82,8 +90,12 @@ public:
 
     std::vector<double> Update(const std::vector<double>& inputs, const UPDATE_TYPE update_type = UPDATE_TYPE::ACTIVE);
 
+    // Getters and setters
     std::size_t GetDepth() const;
+    const std::vector<Neuron>& GetNeurons() const { return m_neurons; }
 
+
+    // Friends
     friend std::string to_string(const NeuralNet& nn);
 };
 

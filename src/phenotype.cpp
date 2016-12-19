@@ -27,7 +27,7 @@ NeuralNet::NeuralNet(const std::vector<NeuronGene>& neuron_genes,
     //first, create all the required neurons
     for(const auto& ng : neuron_genes)
     {
-        m_neurons.push_back(Neuron(ng.Type, ng.ID, ng.ActivationResponse));
+        m_neurons.push_back(Neuron(ng.Type, ng.ID, ng.ActivationResponse, ng.SplitX, ng.SplitY));
     }
 
     auto get_neuron_ptr = [this](NeuronID id)
