@@ -54,9 +54,6 @@ SCENARIO("GenAlg gets initialized with population size of 150, 2 inputs and 1 ou
 
                     if(solved)
                     {
-                        std::cout << ga.Generation() << std::endl;
-                        auto stats = ga.SpeciesStats();
-                        std::cout << "Mean: " << stats.Mean() << ", STD: " << stats.StandardDeviation() << ", Max: " << stats.MaxValue() << ", Min: " << stats.MinValue() << std::endl;
                         break;
                     }
                 }
