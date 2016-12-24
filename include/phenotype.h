@@ -4,10 +4,12 @@
 #include <vector>
 #include <memory>
 
-#include <opencv2/core/core.hpp>
+#include "json.hpp"
 
 #include "genes.h"
 #include "genome.h"
+#include "serialize.h"
+
 
 namespace neat
 {
@@ -25,7 +27,8 @@ struct Neuron;
 class NeuralNet;
 typedef std::shared_ptr<NeuralNet> SNeuralNetPtr;
 
-struct Link
+
+struct Link : public ISerialize
 {
     Neuron* In;
     Neuron* Out;
@@ -39,10 +42,12 @@ struct Link
           Weight(weight),
           IsRecurrent(recurrent)
     {}
+
+    nlohmann::json serialize() const;
 };
 
 
-struct Neuron
+struct Neuron : public ISerialize
 {
     NeuronType Type;
     NeuronID ID;
@@ -66,34 +71,35 @@ struct Neuron
                                  SplitX(splitx),
                                  SplitY(splity)
     {}
+
+    nlohmann::json serialize() const;
 };
 
 
-class NeuralNet
+class NeuralNet : public ISerialize
 {
 private:
     std::vector<Neuron> m_neurons;
-    std::size_t m_net_depth;
 
     std::size_t GetDepth(const Neuron* n, std::size_t depth) const;
 
 public:
-    NeuralNet(std::vector<Neuron> neurons, std::size_t net_depth)
-        : m_neurons(neurons),
-          m_net_depth(net_depth)
+    NeuralNet(std::vector<Neuron>& neurons)
+        : m_neurons(neurons)
     {}
 
     NeuralNet(const Genome& g);
     NeuralNet(const std::vector<NeuronGene>& neuron_genes,
-              const std::vector<LinkGene>& link_genes,
-              std::size_t depth);
+              const std::vector<LinkGene>& link_genes);
+
 
     std::vector<double> Update(const std::vector<double>& inputs, const UPDATE_TYPE update_type = UPDATE_TYPE::ACTIVE);
+
+    nlohmann::json serialize() const;
 
     // Getters and setters
     std::size_t GetDepth() const;
     const std::vector<Neuron>& GetNeurons() const { return m_neurons; }
-
 
     // Friends
     friend std::string to_string(const NeuralNet& nn);

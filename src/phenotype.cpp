@@ -13,16 +13,57 @@ double sigmoid(double input, double act_response)
 }
 
 
+nlohmann::json Link::serialize() const
+{
+    nlohmann::json object = {
+        {"InputID", (int)In->ID},
+        {"OutputID", (int)Out->ID},
+        {"Weight", Weight},
+        {"IsRecurrent", IsRecurrent}
+    };
+    return std::move(object);
+}
+
+
+nlohmann::json Neuron::serialize() const
+{
+    using namespace cpplinq;
+    nlohmann::json object = {
+        {"Type", to_string(Type)},
+        {"ID", (int)ID},
+        {"ActivationRespone", ActivationResponse},
+        {"OutputSignal", OutputSignal},
+        {"SplitX", SplitX},
+        {"SplitY", SplitY}
+    };
+    auto in_links = from(InLinks)
+        >> select([](const Link& link)
+        {
+            return link.serialize();
+        })
+        >> to_vector();
+
+    auto out_links = from(OutLinks)
+        >> select([](const Link& link)
+        {
+            return link.serialize();
+        })
+        >> to_vector();
+
+    object["InLinks"] = in_links;
+    object["OutLinks"] = out_links;
+    return std::move(object);
+}
+
+
+
 NeuralNet::NeuralNet(const Genome& g) : NeuralNet(g.NeuronGenes(),
-                                                  g.NeuronLinks(),
-                                                  1)
+                                                  g.NeuronLinks())
 {}
 
 
 NeuralNet::NeuralNet(const std::vector<NeuronGene>& neuron_genes,
-                     const std::vector<LinkGene>& link_genes,
-                     std::size_t depth): m_neurons(),
-                                         m_net_depth(depth)
+                     const std::vector<LinkGene>& link_genes) : m_neurons()
 {
     //first, create all the required neurons
     for(const auto& ng : neuron_genes)
@@ -61,7 +102,7 @@ std::vector<double> NeuralNet::Update(const std::vector<double>& inputs, const U
 {
     std::vector<double> outputs;
 
-    int flush_count = update_type == UPDATE_TYPE::SNAPSHOT ? m_net_depth : 1;
+    int flush_count = 1;
 
     for(int i = 0; i < flush_count; ++i)
     {
@@ -113,7 +154,20 @@ std::vector<double> NeuralNet::Update(const std::vector<double>& inputs, const U
             neuron.OutputSignal = 0.0;
         }
     }
-    return outputs;
+    return std::move(outputs);
+}
+
+
+nlohmann::json NeuralNet::serialize() const
+{
+    using namespace cpplinq;
+    auto neurons = from(m_neurons)
+        >> select([](const Neuron& n)
+        {
+            return n.serialize();
+        })
+        >> to_vector();
+    return nlohmann::json(neurons);
 }
 
 

@@ -66,7 +66,7 @@ std::vector<SNeuralNetPtr> GenAlg::CreateNeuralNetworks()
 {
     return from(m_genomes) >> select([](const Genome& g)
         {
-            return std::make_shared<NeuralNet>(g.NeuronGenes(), g.NeuronLinks(), 1);
+            return std::make_shared<NeuralNet>(g.NeuronGenes(), g.NeuronLinks());
         })
         >> to_vector();
 }

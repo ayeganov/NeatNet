@@ -28,5 +28,9 @@ file(COPY ${test_images} DESTINATION ${CMAKE_BINARY_DIR})
 add_executable(test_visualize ${test_visualize_sources})
 target_link_libraries(test_visualize ${OpenCV_LIBS})
 
+
+set(test_serialize_sources "./test/test_serialize.cpp" "./src/phenotype.cpp" "./src/params.cpp" "./src/genome.cpp" "./src/innovation.cpp" "./src/genes.cpp" "./src/serialize.cpp")
+add_executable(test_serialize ${test_serialize_sources})
+
 #add_library(NeatNet SHARED src/genome.cpp)
 #add_executable(test_neat_net ${TEST_SOURCES})
