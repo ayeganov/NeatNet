@@ -40,7 +40,7 @@ SCENARIO("GenAlg gets initialized with population size of 150, 2 inputs and 1 ou
         auto brains = ga.CreateNeuralNetworks();
         bool solved = false;
 
-        WHEN("It learns it well")
+        THEN("It learns it well")
         {
             int generations = 200;
             for(int gen = 0; gen < generations && !solved; ++gen)
