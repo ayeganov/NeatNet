@@ -15,6 +15,8 @@ public:
 
 
 void serialize_to_file(std::string path, const ISerialize& object, bool pretty=true);
+nlohmann::json deserialize_from_file(std::string path);
+
 
 };
 #endif

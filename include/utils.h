@@ -2,7 +2,7 @@
 #define __UTILS_H__
 
 #include <chrono>
-#include <iostream>
+#include <fstream>
 #include <memory>
 #include <random>
 #include <stdexcept>
@@ -280,6 +280,13 @@ private:
     double m_total;
     double m_min_value, m_max_value;
 };
+
+
+static bool is_file_exist(std::string path)
+{
+    std::ifstream file(path);
+    return file.good();
+}
 
 
 }

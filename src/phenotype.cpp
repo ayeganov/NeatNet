@@ -31,8 +31,7 @@ nlohmann::json Neuron::serialize() const
     nlohmann::json object = {
         {"Type", to_string(Type)},
         {"ID", (int)ID},
-        {"ActivationRespone", ActivationResponse},
-        {"OutputSignal", OutputSignal},
+        {"ActivationResponse", ActivationResponse},
         {"SplitX", SplitX},
         {"SplitY", SplitY}
     };
@@ -60,6 +59,84 @@ nlohmann::json Neuron::serialize() const
 NeuralNet::NeuralNet(const Genome& g) : NeuralNet(g.NeuronGenes(),
                                                   g.NeuronLinks())
 {}
+
+
+NeuralNet::NeuralNet(nlohmann::json& object)
+{
+    using namespace cpplinq;
+    auto type_to_enum = [](std::string&& type)
+    {
+        if(type == "BIAS")
+        {
+            return NeuronType::BIAS;
+        }
+        else if(type == "HIDDEN")
+        {
+            return NeuronType::HIDDEN;
+        }
+        else if(type == "INPUT")
+        {
+            return NeuronType::INPUT;
+        }
+        else if(type == "OUTPUT")
+        {
+            return NeuronType::OUTPUT;
+        }
+        else
+        {
+            return NeuronType::NONE;
+        }
+    };
+
+    auto get_neuron_ptr = [this](NeuronID id)
+    {
+        for(auto& np : this->m_neurons)
+        {
+            if(np.ID == id)
+                return &np;
+        }
+        return static_cast<Neuron*>(nullptr);
+    };
+
+    for(auto j : object)
+    {
+        NeuronType type = type_to_enum(j["Type"]);
+        NeuronID id = (int)j["ID"];
+        double ar = j["ActivationResponse"];
+        double splitx = j["SplitX"];
+        double splity = j["SplitY"];
+
+        m_neurons.push_back(Neuron(type, id, ar, splitx, splity));
+    }
+
+    auto make_link = [&get_neuron_ptr](nlohmann::json& obj)
+    {
+        NeuronID input_id = (int)obj["InputID"];
+        NeuronID output_id = (int)obj["OutputID"];
+        double weight = obj["Weight"];
+        bool is_recurrent = obj["IsRecurrent"];
+        return Link(get_neuron_ptr(input_id), get_neuron_ptr(output_id), weight, is_recurrent);
+    };
+
+    // go over all links and restore them
+    for(auto j : object)
+    {
+        NeuronID id = (int)j["ID"];
+        nlohmann::json in_links = j["InLinks"];
+        nlohmann::json out_links = j["OutLinks"];
+        Neuron* n = get_neuron_ptr(id);
+
+        for(auto in_link : in_links)
+        {
+            n->InLinks.push_back(make_link(in_link));
+        }
+
+        for(auto out_link : out_links)
+        {
+            n->OutLinks.push_back(make_link(out_link));
+        }
+    }
+}
 
 
 NeuralNet::NeuralNet(const std::vector<NeuronGene>& neuron_genes,

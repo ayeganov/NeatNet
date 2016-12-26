@@ -32,10 +32,9 @@ struct Link : public ISerialize
 {
     Neuron* In;
     Neuron* Out;
-
     double Weight;
-
     bool IsRecurrent;
+
     Link(Neuron* in, Neuron* out, double weight, bool recurrent)
         : In(in),
           Out(out),
@@ -63,13 +62,13 @@ struct Neuron : public ISerialize
            double act_response,
            double splitx,
            double splity): Type(type),
-                                 ID(id),
-                                 InLinks(),
-                                 OutLinks(),
-                                 ActivationResponse(act_response),
-                                 OutputSignal(0),
-                                 SplitX(splitx),
-                                 SplitY(splity)
+                           ID(id),
+                           InLinks(),
+                           OutLinks(),
+                           ActivationResponse(act_response),
+                           OutputSignal(0),
+                           SplitX(splitx),
+                           SplitY(splity)
     {}
 
     nlohmann::json serialize() const;
@@ -91,7 +90,7 @@ public:
     NeuralNet(const Genome& g);
     NeuralNet(const std::vector<NeuronGene>& neuron_genes,
               const std::vector<LinkGene>& link_genes);
-
+    NeuralNet(nlohmann::json& object);
 
     std::vector<double> Update(const std::vector<double>& inputs, const UPDATE_TYPE update_type = UPDATE_TYPE::ACTIVE);
 

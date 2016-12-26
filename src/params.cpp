@@ -2,6 +2,7 @@
 #include <fstream>
 
 #include "params.h"
+#include "utils.h"
 
 
 namespace neat
@@ -69,12 +70,6 @@ Params::Params(const Params& params)
 }
 
 
-bool is_file_exist(std::string path)
-{
-    std::ifstream file(path);
-    return file.good();
-}
-
 template <typename T>
 void set_value(const nlohmann::json& config, std::string name, T& value)
 {
@@ -97,7 +92,7 @@ Params::Params(const std::string& config_path): Params()
 {
     using json = nlohmann::json;
 
-    if(!is_file_exist(config_path))
+    if(!Utils::is_file_exist(config_path))
     {
         throw new std::invalid_argument("Path " + config_path + " doesn't exist");
     }
