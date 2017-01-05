@@ -139,6 +139,35 @@ NeuralNet::NeuralNet(nlohmann::json& object)
 }
 
 
+Neuron* NeuralNet::find_neuron_by_id(NeuronID id)
+{
+    return find_helper(id, 0, m_neurons.size() - 1);
+}
+
+
+Neuron* NeuralNet::find_helper(NeuronID id, int low, int high)
+{
+    // base case
+    if(high < low) return nullptr;
+
+    int middle = low + (high - low) / 2;
+
+    Neuron* n = &m_neurons[middle];
+    if(n->ID == id)
+    {
+        return n;
+    }
+    else if(id < n->ID)
+    {
+        return find_helper(id, low, middle - 1);
+    }
+    else
+    {
+        return find_helper(id, middle + 1, high);
+    }
+}
+
+
 NeuralNet::NeuralNet(const std::vector<NeuronGene>& neuron_genes,
                      const std::vector<LinkGene>& link_genes) : m_neurons()
 {
@@ -148,23 +177,15 @@ NeuralNet::NeuralNet(const std::vector<NeuronGene>& neuron_genes,
         m_neurons.push_back(Neuron(ng.Type, ng.ID, ng.ActivationResponse, ng.SplitX, ng.SplitY));
     }
 
-    auto get_neuron_ptr = [this](NeuronID id)
-    {
-        for(auto& np : this->m_neurons)
-        {
-            if(np.ID == id)
-                return &np;
-        }
-        return static_cast<Neuron*>(nullptr);
-    };
-
     //now create the links.
     for(const auto& link_gene : link_genes)
     {
         if(link_gene.IsEnabled)
         {
-            auto from_neuron = get_neuron_ptr(link_gene.FromNeuronID);
-            auto to_neuron = get_neuron_ptr(link_gene.ToNeuronID);
+            auto from_neuron = find_neuron_by_id(link_gene.FromNeuronID);
+            auto to_neuron = find_neuron_by_id(link_gene.ToNeuronID);
+
+            assert(from_neuron && to_neuron);
 
             Link tmp_link(from_neuron, to_neuron, link_gene.Weight, link_gene.IsRecurrent);
 
@@ -254,12 +275,13 @@ std::string to_string(const NeuralNet& nn)
     std::string result;
     for(auto& neuron : nn.m_neurons)
     {
-
+        result += to_string(neuron.Type) + to_string(neuron.ID) +  " ";
     }
     return result;
 }
 
 
+// TODO: Check number of neurons == (input_size + output_size + bias) then return 1
 std::size_t NeuralNet::GetDepth() const
 {
     using namespace cpplinq;

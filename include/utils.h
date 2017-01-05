@@ -112,6 +112,14 @@ public:
     }
 
     template <typename OtherT, typename OtherMeaning>
+    inline bool operator<(IDType<OtherT, OtherMeaning> const& rhs)
+    {
+        constexpr bool same_types = std::is_same<Meaning, OtherMeaning>::value;
+        static_assert(same_types, "You can only compare ID's of the same type.");
+        return m_id < rhs.m_id;
+    }
+
+    template <typename OtherT, typename OtherMeaning>
     inline IDType<T, Meaning>& operator=(const IDType<OtherT, OtherMeaning>& other)
     {
         constexpr bool same_types = std::is_same<Meaning, OtherMeaning>::value;

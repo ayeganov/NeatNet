@@ -81,6 +81,8 @@ private:
     std::vector<Neuron> m_neurons;
 
     std::size_t GetDepth(const Neuron* n, std::size_t depth) const;
+    Neuron* find_neuron_by_id(NeuronID id);
+    Neuron* find_helper(NeuronID id, int low, int high);
 
 public:
     NeuralNet(std::vector<Neuron>& neurons)

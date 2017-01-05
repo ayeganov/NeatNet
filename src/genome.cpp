@@ -215,7 +215,22 @@ bool Genome::AddNeuron(double mutation_prob,
         m_link_genes.push_back(link_top);
 
         NeuronGene new_neuron(NeuronType::HIDDEN, neuron_id, new_depth, new_width);
-        m_neuron_genes.push_back(new_neuron);
+
+        auto insert_point = m_neuron_genes.end() - 1;
+        while(insert_point->ID > neuron_id)
+        {
+            --insert_point;
+        }
+
+        auto new_pos = m_neuron_genes.insert(insert_point + 1, new_neuron);
+
+        auto& previous = *(new_pos - 1);
+        assert(previous.ID < neuron_id);
+        if(new_pos != m_neuron_genes.end() - 1)
+        {
+            auto& next = *(new_pos + 1);
+            assert(next.ID > neuron_id);
+        }
     }
     return true;
 }

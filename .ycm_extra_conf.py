@@ -39,7 +39,7 @@ flags = [
     '-I/mnt/c/Users/aleksandr/projects/NeatNet/include',
     '-I/mnt/d/fun/NeatNet/include',
     '-I/home/aleks/projects/NeatNet/include',
-    '-std=c++11',
+    '-std=c++14',
 ]
 
 
