@@ -127,7 +127,16 @@ bool Genome::AddNeuron(double mutation_prob,
         return false;
     }
 
-    auto& link = m_link_genes[chosen_link];
+    AddNeuronToLink(chosen_link, inno_db);
+    return true;
+}
+
+
+void Genome::AddNeuronToLink(int link_idx, InnovationDB& inno_db)
+{
+    Utils::DefaultRandom& random = Utils::DefaultRandom::Instance();
+
+    auto& link = m_link_genes[link_idx];
     // disable the link
     link.IsEnabled = false;
     double original_weight = link.Weight;
@@ -232,7 +241,6 @@ bool Genome::AddNeuron(double mutation_prob,
             assert(next.ID > neuron_id);
         }
     }
-    return true;
 }
 
 

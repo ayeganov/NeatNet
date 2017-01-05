@@ -105,6 +105,8 @@ public:
                    InnovationDB& innovation,
                    int num_trys_to_find_old_link);
 
+    void AddNeuronToLink(int link_idx, InnovationDB& inno_db);
+
     void MutateWeights(double mutation_prob,
                        double prob_new_weight,
                        double max_perturbation);
