@@ -101,6 +101,8 @@ public:
                  int num_trys_recurrent,
                  int num_trys_add_link);
 
+    void ConnectNeurons(NeuronID neuron_from, NeuronID neuron_to, InnovationDB& inno_db);
+
     bool AddNeuron(double mutation_prob,
                    InnovationDB& innovation,
                    int num_trys_to_find_old_link);

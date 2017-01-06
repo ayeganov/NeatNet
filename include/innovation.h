@@ -62,9 +62,9 @@ struct Innovation
                InnovationID id,
                NeuronID neuron_from_id,
                NeuronID neuron_to_id) : Type(type),
-                                   ID(id),
-                                   NeuronFromID(neuron_from_id),
-                                   NeuronToID(neuron_to_id)
+                                        ID(id),
+                                        NeuronFromID(neuron_from_id),
+                                        NeuronToID(neuron_to_id)
     {}
 };
 

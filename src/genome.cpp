@@ -270,28 +270,35 @@ bool Genome::AddLink(double mutation_prob,
     else
     {
         assert(neuron_id_from >= 0 && neuron_id_to >= 0);
-
-        auto is_recurrent_link = [&](NeuronID neuron_id1, NeuronID neuron_id2) {
-            auto& neuron1 = m_neuron_genes[GetNeuronIndex(neuron_id1)];
-            auto& neuron2 = m_neuron_genes[GetNeuronIndex(neuron_id2)];
-            return neuron_id1 == neuron_id2 || neuron1.SplitY > neuron2.SplitY;
-        };
-        InnovationID innovation_id = innovationDB.GetInnovationId(neuron_id_from, neuron_id_to, InnovationType::NEW_LINK);
-        bool is_recurrent = is_recurrent_link(neuron_id_from, neuron_id_to);
-
-        innovation_id = innovation_id < 0
-            ? innovationDB.AddLinkInnovation(neuron_id_from, neuron_id_to)
-            : innovation_id;
-
-        LinkGene new_link(neuron_id_from,
-                         neuron_id_to,
-                         random.RandomClamped<double>(),
-                         true,
-                         innovation_id,
-                         is_recurrent);
-        m_link_genes.push_back(new_link);
+        ConnectNeurons(neuron_id_from, neuron_id_to, innovationDB);
         return true;
     }
+}
+
+
+void Genome::ConnectNeurons(NeuronID neuron_id_from, NeuronID neuron_id_to, InnovationDB& innovationDB)
+{
+    auto& random = Utils::DefaultRandom::Instance();
+    auto is_recurrent_link = [&](NeuronID neuron_id1, NeuronID neuron_id2) {
+        auto& neuron1 = m_neuron_genes[GetNeuronIndex(neuron_id1)];
+        auto& neuron2 = m_neuron_genes[GetNeuronIndex(neuron_id2)];
+        return neuron_id1 == neuron_id2 || neuron1.SplitY > neuron2.SplitY;
+    };
+
+    InnovationID innovation_id = innovationDB.GetInnovationId(neuron_id_from, neuron_id_to, InnovationType::NEW_LINK);
+    bool is_recurrent = is_recurrent_link(neuron_id_from, neuron_id_to);
+
+    innovation_id = innovation_id < 0
+        ? innovationDB.AddLinkInnovation(neuron_id_from, neuron_id_to)
+        : innovation_id;
+
+    LinkGene new_link(neuron_id_from,
+                     neuron_id_to,
+                     random.RandomClamped<double>(),
+                     true,
+                     innovation_id,
+                     is_recurrent);
+    m_link_genes.push_back(new_link);
 }
 
 
@@ -432,58 +439,67 @@ Genome Genome::Crossover(const Genome& mom, const InnovationDB& inno_db, GenomeI
     std::vector<NeuronGene> baby_neurons;
     std::vector<LinkGene> baby_links;
 
-    std::vector<NeuronID> neuron_ids;
+    std::set<NeuronID> neuron_ids;
 
     auto current_mom = mom.m_link_genes.begin();
     auto current_dad = dad.m_link_genes.begin();
 
     auto mom_end = mom.m_link_genes.end();
     auto dad_end = dad.m_link_genes.end();
-    LinkGene selected_gene;
+    const LinkGene* selected_gene;
 
+    // go over all link genes from mom and dad
     while(!(current_mom == mom_end && current_dad == dad_end))
     {
+        // reached the end of mom - keep going with dad
         if(current_mom == mom_end && current_dad != dad_end)
         {
             if(best == DAD)
             {
-                selected_gene = *current_dad;
+                selected_gene = &(*current_dad);
             }
             ++current_dad;
         }
+        // reached the end of dad - keep going with mom
         else if(current_mom != mom_end && current_dad == dad_end)
         {
             if(best == MOM)
             {
-                selected_gene = *current_mom;
+                selected_gene = &(*current_mom);
             }
             ++current_mom;
         }
+        // disjoint links - mom has older innovation than dad
+        // if mom is the best pick that gene
         else if(current_mom->InnovID < current_dad->InnovID)
         {
             if(best == MOM)
             {
-                selected_gene = *current_mom;
+                selected_gene = &(*current_mom);
             }
             ++current_mom;
         }
+        // disjoint links - dad has older innovation than mom
+        // if dad is the best pick that gene
         else if(current_dad->InnovID < current_mom->InnovID)
         {
             if(best == DAD)
             {
-                selected_gene = *current_dad;
+                selected_gene = &(*current_dad);
             }
             ++current_dad;
         }
+        // most likely going over the beginning of genes - inputs etc Genes
+        // match up, so pick one randomly and advance BOTH forward
         else if(current_dad->InnovID == current_mom->InnovID)
         {
             if(random.CoinFlip())
             {
-                selected_gene = *current_mom;
+                selected_gene = &(*current_mom);
             }
             else
             {
-                selected_gene = *current_dad;
+                selected_gene = &(*current_dad);
             }
             ++current_dad;
             ++current_mom;
@@ -491,28 +507,19 @@ Genome Genome::Crossover(const Genome& mom, const InnovationDB& inno_db, GenomeI
 
         if(!baby_links.size())
         {
-            baby_links.push_back(selected_gene);
+            baby_links.push_back(*selected_gene);
         }
         else
         {
             std::size_t size = baby_links.size();
-            if(baby_links[size-1].InnovID != selected_gene.InnovID)
+            if(baby_links[size-1].InnovID != selected_gene->InnovID)
             {
-                baby_links.push_back(selected_gene);
+                baby_links.push_back(*selected_gene);
             }
         }
 
-        if(!(cpplinq::from(neuron_ids) >> cpplinq::contains(selected_gene.FromNeuronID)))
-        {
-            neuron_ids.push_back(selected_gene.FromNeuronID);
-        }
-
-        if(!(cpplinq::from(neuron_ids) >> cpplinq::contains(selected_gene.ToNeuronID)))
-        {
-            neuron_ids.push_back(selected_gene.ToNeuronID);
-        }
-
-        std::sort(neuron_ids.begin(), neuron_ids.end());
+        neuron_ids.insert(selected_gene->FromNeuronID);
+        neuron_ids.insert(selected_gene->ToNeuronID);
     }
 
     for(NeuronID nid : neuron_ids)
