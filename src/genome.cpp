@@ -1,8 +1,10 @@
 #include <cassert>
+#include <set>
 
 #include "cpplinq.hpp"
 
 #include "genome.h"
+#include "genes.h"
 
 namespace neat
 {
@@ -41,16 +43,16 @@ Genome::Genome(GenomeID id, std::size_t inputs, std::size_t outputs, Params* par
     m_neuron_genes.insert(m_neuron_genes.end(), output_neurons.begin(), output_neurons.end());
 
     Utils::DefaultRandom& random = Utils::DefaultRandom::Instance();
+    InnovationID innovation_id = NumNeurons();
     for(int i = 0; i < inputs + 1; ++i)
     {
         for(int j = 0; j < outputs; ++j)
         {
-            InnovationID innovation_id = NumNeurons() + i + j;
             m_link_genes.push_back(LinkGene(m_neuron_genes[i].ID,
                                             m_neuron_genes[inputs + j + 1].ID,
                                             random.RandomClamped(-1.0, 1.0),
                                             true,
-                                            innovation_id));
+                                            innovation_id++));
         }
     }
 }
