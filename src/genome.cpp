@@ -402,13 +402,13 @@ double Genome::CalculateCompatabilityScore(const Genome& other) const
         }
 
         //innovation numbers are different so increment the disjoint score
-        if (id1 < id2)
+        else if (id1 < id2)
         {
             ++num_disjoint;
             g1 = increase(g1, NumLinks());
         }
 
-        if(id1 > id2)
+        else if(id1 > id2)
         {
             ++num_disjoint;
             g2 = increase(g2, other.NumLinks());

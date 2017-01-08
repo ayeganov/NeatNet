@@ -358,3 +358,43 @@ SCENARIO("Genomes get crossed over", "[Crossover]")
         }
     }
 }
+
+
+// Add more cases to this scenario
+SCENARIO("Compatibility is calculated between genomes", "[CalculateCompatabilityScore]")
+{
+    using namespace cpplinq;
+    GIVEN("Two identical genomes")
+    {
+        neat::Params p;
+        neat::Genome g1(1, 2, 1, &p);
+        neat::Genome g2(2, g1.NeuronGenes(), g1.NeuronLinks(), 2, 1, &p);
+
+        WHEN("Their compatibility is calculated")
+        {
+            double score = g1.CalculateCompatabilityScore(g2);
+
+            THEN("It is equal to 0")
+            {
+                REQUIRE(score == 0.0);
+            }
+        }
+    }
+
+    GIVEN("Two different genomes")
+    {
+        neat::Params p;
+        neat::Genome g1(1, 2, 1, &p);
+        neat::Genome g2(2, 2, 1, &p);
+
+        WHEN("Their compatibility is calculated")
+        {
+            double score = g1.CalculateCompatabilityScore(g2);
+
+            THEN("It is not equal to 0")
+            {
+                REQUIRE(score > 0.0);
+            }
+        }
+    }
+}

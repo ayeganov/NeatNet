@@ -17,7 +17,7 @@ Params::Params()
     m_add_link_chance = 0.3;
     m_add_neuron_chance = 0.05;
     m_add_recur_link_chance = 0.05;
-    m_compatibility_threshold = 0.25;
+    m_compatibility_threshold = 0.05;
     m_crossover_chance = 0.75;
     m_disjoint_scaler = 1.0;
     m_excess_scaler = 1.0;
