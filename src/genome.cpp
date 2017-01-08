@@ -23,19 +23,19 @@ Genome::Genome(GenomeID id, std::size_t inputs, std::size_t outputs, Params* par
 
     m_neuron_genes = cpplinq::range(0, inputs)
         >> cpplinq::select([&](int i){ return NeuronGene(NeuronType::INPUT,
-                                                         i,
+                                                         i + 1,
                                                          0,
                                                          (i+2)*input_row_slice);
                                     })
         >> cpplinq::to_vector();
 
-    m_neuron_genes.push_back(NeuronGene(NeuronType::BIAS, inputs, 0, input_row_slice));
+    m_neuron_genes.push_back(NeuronGene(NeuronType::BIAS, inputs + 1, 0, input_row_slice));
 
     double output_row_slice = 1 / (double)(outputs+1);
 
     auto output_neurons = cpplinq::range(1, outputs)
         >> cpplinq::select([&](int i) { return NeuronGene(NeuronType::OUTPUT,
-                                                          i + inputs,
+                                                          i + inputs + 1,
                                                           1,
                                                           (i+1)*output_row_slice);
                                       })
@@ -129,16 +129,15 @@ bool Genome::AddNeuron(double mutation_prob,
         return false;
     }
 
-    AddNeuronToLink(chosen_link, inno_db);
+    AddNeuronToLink(m_link_genes[chosen_link], inno_db);
     return true;
 }
 
 
-void Genome::AddNeuronToLink(int link_idx, InnovationDB& inno_db)
+void Genome::AddNeuronToLink(LinkGene& link, InnovationDB& inno_db)
 {
     Utils::DefaultRandom& random = Utils::DefaultRandom::Instance();
 
-    auto& link = m_link_genes[link_idx];
     // disable the link
     link.IsEnabled = false;
     double original_weight = link.Weight;
@@ -185,16 +184,7 @@ void Genome::AddNeuronToLink(int link_idx, InnovationDB& inno_db)
 
     if(inno_id < 0)
     {
-        NeuronID neuron_id = inno_db.AddNeuronInnovation(from_neuron.ID,
-                                                         to_neuron.ID,
-                                                         NeuronType::HIDDEN,
-                                                         new_width,
-                                                         new_depth);
-        NeuronGene ng(NeuronType::HIDDEN,
-                      neuron_id,
-                      new_depth,
-                      new_width);
-        m_neuron_genes.push_back(ng);
+        NeuronID neuron_id = inno_db.NextNeuronID();
 
         InnovationID link_id = inno_db.AddLinkInnovation(from, neuron_id);
         LinkGene bottom_link(from,
@@ -211,6 +201,17 @@ void Genome::AddNeuronToLink(int link_idx, InnovationDB& inno_db)
                           true,
                           link_id);
         m_link_genes.push_back(top_link);
+
+        inno_db.AddNeuronInnovation(from_neuron.ID,
+                                    to_neuron.ID,
+                                    NeuronType::HIDDEN,
+                                    new_width,
+                                    new_depth);
+        NeuronGene ng(NeuronType::HIDDEN,
+                      neuron_id,
+                      new_depth,
+                      new_width);
+        m_neuron_genes.push_back(ng);
     }
     else
     {
@@ -243,6 +244,22 @@ void Genome::AddNeuronToLink(int link_idx, InnovationDB& inno_db)
             assert(next.ID > neuron_id);
         }
     }
+}
+
+
+LinkGene* Genome::FindLinkConnectingNeurons(NeuronID from, NeuronID to)
+{
+    LinkGene* found = nullptr;
+
+    for(LinkGene& lg : m_link_genes)
+    {
+        if(lg.FromNeuronID == from && lg.ToNeuronID == to)
+        {
+            found = &lg;
+            break;
+        }
+    }
+    return found;
 }
 
 

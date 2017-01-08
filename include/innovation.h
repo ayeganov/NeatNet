@@ -91,8 +91,8 @@ public:
 
     InnovationDB()
         : m_innovations(),
-          m_next_neuron_id(0),
-          m_next_innovation_id(0)
+          m_next_neuron_id(1),
+          m_next_innovation_id(1)
     {}
 
     InnovationID GetInnovationId(NeuronID neuron_id_from, NeuronID neuron_id_to, InnovationType type);
@@ -112,7 +112,8 @@ public:
         return m_innovations;
     }
 
-    InnovationID NextInnovationID() { return m_next_innovation_id++; }
+    InnovationID NextInnovationID() { return m_next_innovation_id; }
+    NeuronID NextNeuronID() { return m_next_neuron_id; }
 };
 }
 #endif

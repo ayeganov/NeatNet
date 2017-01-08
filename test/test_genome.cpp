@@ -3,11 +3,13 @@
 
 #include <iostream>
 #include <vector>
+#include <set>
 
 #include "cpplinq.hpp"
 #include "genes.h"
 #include "genome.h"
 #include "params.h"
+
 
 SCENARIO("Genome gets initialized with correct number of neurons", "[GenomeInit]")
 {
@@ -15,8 +17,8 @@ SCENARIO("Genome gets initialized with correct number of neurons", "[GenomeInit]
     GIVEN("Genome ID, 3 inputs and 2 outputs")
     {
         int ID = 1;
-        int inputs = 3;
-        int outputs = 2;
+        int inputs = 8;
+        int outputs = 4;
 
         neat::Params p;
         neat::Genome g(ID, inputs, outputs, &p);
@@ -44,6 +46,17 @@ SCENARIO("Genome gets initialized with correct number of neurons", "[GenomeInit]
                 {
                     REQUIRE(link.Weight >= -1.0);
                     REQUIRE(link.Weight <= 1.0);
+                }
+            }
+
+            THEN("Link innovation IDs are unique")
+            {
+                std::set<neat::InnovationID> inno_ids;
+                for(auto& link : g.NeuronLinks())
+                {
+                    auto num_ids = inno_ids.count(link.InnovID);
+                    REQUIRE(num_ids == 0);
+                    inno_ids.insert(link.InnovID);
                 }
             }
         }
@@ -146,6 +159,12 @@ SCENARIO("A neuron is added to a genome", "[AddNeuron]")
                 REQUIRE(g.NumNeurons() == 5);
                 REQUIRE(g.NumLinks() == 5); // 2 links because the old link
                                             // get disabled, and not removed.
+                int num_disabled = 0;
+                for(auto& link : g.NeuronLinks())
+                {
+                    num_disabled += int(!link.IsEnabled);
+                }
+                REQUIRE(num_disabled == 1);
             }
         }
 
@@ -169,7 +188,7 @@ SCENARIO("A neuron is added to a genome", "[AddNeuron]")
 
             THEN("All neuron ID's follow a natural sequence")
             {
-                range(0, g.NumNeurons()) >> zip_with(from(g.NeuronGenes()))
+                range(1, g.NumNeurons()) >> zip_with(from(g.NeuronGenes()))
                     >> for_each([](std::pair<int, neat::NeuronGene> p)
                     {
                         REQUIRE(neat::NeuronID(p.first) == p.second.ID);
@@ -224,6 +243,117 @@ SCENARIO("A link is added to the genome", "[AddLink]")
                     >> any([](const neat::LinkGene& lg) { return lg.FromNeuronID == lg.ToNeuronID; });
 
                 REQUIRE(!has_self_recurrent);
+            }
+        }
+    }
+}
+
+
+SCENARIO("Genomes get crossed over", "[Crossover]")
+{
+    using namespace cpplinq;
+    GIVEN("Two identical genomes")
+    {
+        neat::Params p;
+        neat::Genome mom(1, 5, 2, &p);
+        neat::Genome dad(2, 5, 2, &p);
+
+        mom.SetFitness(1.0);
+        dad.SetFitness(1.0);
+
+        neat::InnovationDB inno_db(mom.NeuronGenes(), mom.NeuronLinks());
+
+        WHEN("They crossover")
+        {
+            neat::Genome baby = mom.Crossover(dad, inno_db, 3);
+
+            THEN("The baby is identical to parents")
+            {
+                REQUIRE(baby.NumLinks() == mom.NumLinks());
+                REQUIRE(baby.NumNeurons() == mom.NumNeurons());
+                REQUIRE(baby.NumHiddenNeurons() == mom.NumHiddenNeurons());
+
+                for(int link_idx = 0; link_idx < baby.NumLinks(); ++link_idx)
+                {
+                    auto& baby_link = baby.NeuronLinks()[link_idx];
+                    auto& mom_link = mom.NeuronLinks()[link_idx];
+                    REQUIRE(baby_link.InnovID == mom_link.InnovID);
+                    REQUIRE(baby_link.IsEnabled == mom_link.IsEnabled);
+                    REQUIRE(baby_link.IsRecurrent == mom_link.IsRecurrent);
+                    REQUIRE(baby_link.ToNeuronID == mom_link.ToNeuronID);
+                    REQUIRE(baby_link.FromNeuronID == mom_link.FromNeuronID);
+                }
+
+                auto neuron_zip = from(baby.NeuronGenes())
+                >> zip_with(from(mom.NeuronGenes()))
+                >> to_vector();
+
+                for(auto& pair : neuron_zip)
+                {
+                    REQUIRE(pair.first.Type == pair.second.Type);
+                    REQUIRE(pair.first.ID == pair.second.ID);
+                    REQUIRE(pair.first.IsRecurrent == pair.second.IsRecurrent);
+                    REQUIRE(pair.first.SplitX == pair.second.SplitX);
+                    REQUIRE(pair.first.SplitY == pair.second.SplitY);
+                }
+            }
+        }
+    }
+
+    GIVEN("Two genomes, where one inherits from the other")
+    {
+        neat::Params p;
+        neat::Genome dad(1, 2, 1, &p);
+        neat::InnovationDB inno_db(dad.NeuronGenes(), dad.NeuronLinks());
+
+        WHEN("Genomes are mutated in the way they are defined in the paper")
+        {
+            neat::LinkGene* two_to_four = dad.FindLinkConnectingNeurons(2, 4);
+            REQUIRE(two_to_four != nullptr);
+
+            dad.AddNeuronToLink(*two_to_four, inno_db);
+
+            neat::Genome mom(2, dad.NeuronGenes(), dad.NeuronLinks(), 2, 1, &p);
+
+            neat::LinkGene* five_to_four = mom.FindLinkConnectingNeurons(5, 4);
+            REQUIRE(five_to_four != nullptr);
+
+            mom.AddNeuronToLink(*five_to_four, inno_db);
+
+            dad.ConnectNeurons(1, 5, inno_db);
+
+            mom.ConnectNeurons(3, 5, inno_db);
+            mom.ConnectNeurons(1, 6, inno_db);
+
+            // Set fitness to prefer mom's genes over dad's
+            dad.SetFitness(1.0);
+            mom.SetFitness(1.1);
+            auto baby = dad.Crossover(mom, inno_db, 3);
+
+            auto neuron_zip = from(baby.NeuronLinks())
+            >> zip_with(from(mom.NeuronLinks()))
+            >> to_vector();
+
+            for(auto& p : neuron_zip)
+            {
+                REQUIRE(p.first.InnovID == p.second.InnovID);
+                REQUIRE(p.first.IsRecurrent == p.second.IsRecurrent);
+            }
+
+            // Set fitness to prefer dad's genes over mom's
+            dad.SetFitness(1.1);
+            mom.SetFitness(1.0);
+
+            baby = dad.Crossover(mom, inno_db, 3);
+
+            neuron_zip = from(baby.NeuronLinks())
+            >> zip_with(from(dad.NeuronLinks()))
+            >> to_vector();
+
+            for(auto& p : neuron_zip)
+            {
+                REQUIRE(p.first.InnovID == p.second.InnovID);
+                REQUIRE(p.first.IsRecurrent == p.second.IsRecurrent);
             }
         }
     }

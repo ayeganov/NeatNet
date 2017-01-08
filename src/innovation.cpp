@@ -9,19 +9,19 @@ InnovationDB::InnovationDB(const std::vector<NeuronGene>& start_neuron_genes,
                             const std::vector<LinkGene>& start_link_genes)
     : InnovationDB()
 {
-    // first create neuron innovations
+    // First create link innovations
+    for(auto const& lg : start_link_genes)
+    {
+        m_innovations.push_back(Innovation(lg, m_next_innovation_id++));
+    }
+
+    // ... then create neuron innovations
     for(auto const& ng : start_neuron_genes)
     {
         Innovation innov(ng, m_next_innovation_id++);
         m_innovations.push_back(innov);
     }
     m_next_neuron_id += start_neuron_genes.size();
-
-    // ... then create link innovations
-    for(auto const& lg : start_link_genes)
-    {
-        m_innovations.push_back(Innovation(lg, m_next_innovation_id++));
-    }
 }
 
 InnovationID InnovationDB::GetInnovationId(NeuronID neuron_id_from, NeuronID neuron_id_to, InnovationType type)

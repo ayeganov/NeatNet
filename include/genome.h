@@ -107,7 +107,7 @@ public:
                    InnovationDB& innovation,
                    int num_trys_to_find_old_link);
 
-    void AddNeuronToLink(int link_idx, InnovationDB& inno_db);
+    void AddNeuronToLink(LinkGene& link, InnovationDB& inno_db);
 
     void MutateWeights(double mutation_prob,
                        double prob_new_weight,
@@ -119,6 +119,8 @@ public:
     double CalculateCompatabilityScore(const Genome& other) const;
 
     Genome Crossover(const Genome& other, const InnovationDB& inno_db, GenomeID genome_id);
+
+    LinkGene* FindLinkConnectingNeurons(NeuronID from, NeuronID to);
 
     void SortLinks();
 
