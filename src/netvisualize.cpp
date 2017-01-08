@@ -113,6 +113,9 @@ std::map<NeuronID, cv::Point> draw_neurons(cv::Mat& image, std::map<Level, Layer
             cv::Point position(x_pos, y_position);
             neuron_positions[neuron.ID] = position;
 
+            std::string neuron_id_txt = std::to_string(neuron.ID);
+            putText(image, neuron_id_txt, position, cv::FONT_HERSHEY_SIMPLEX, 0.3, TEXT_CLR, 1, CV_AA);
+
             circle(image, position, RADIUS, NEURON_CLR, 1, CV_AA);
         }
     }

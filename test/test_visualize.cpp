@@ -25,12 +25,14 @@ SCENARIO("Create an image of a neural network")
         {
             bool draw_input = true;
             auto image = visualize_net(nn, draw_input);
+            cv::imwrite("new_image.png", image);
             auto test_image = cv::imread("test_image.png");
 
             THEN("The generated image is identical to the reference test image")
             {
-                cv::Mat image_diff = test_image - image;
-                double total_sum = sum(image_diff)[0];
+                cv::Mat image_diff1 = image - test_image;
+                cv::Mat image_diff2 = test_image - image;
+                double total_sum = sum(image_diff1)[0] + sum(image_diff2)[0];
                 REQUIRE(total_sum == 0.0);
             }
         }
