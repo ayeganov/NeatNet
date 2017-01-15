@@ -14,12 +14,12 @@ target_link_libraries(test_xor ${OpenCV_LIBS})
 
 set(test_params_sources "../src/params.cpp" "test_params.cpp")
 set(test_params_json "./test_params.json")
-file(COPY ${test_params_json} DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
+file(COPY ${test_params_json} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 add_executable(test_params ${test_params_sources})
 
 set(test_visualize_sources "test_visualize.cpp" "../src/netvisualize.cpp" "../src/phenotype.cpp" "../src/params.cpp" "../src/genome.cpp" "../src/innovation.cpp" "../src/genes.cpp")
 set(test_images "./test_image.png")
-file(COPY ${test_images} DESTINATION ${CMAKE_CURRENT_SOURCE_DIR})
+file(COPY ${test_images} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 add_executable(test_visualize ${test_visualize_sources})
 target_link_libraries(test_visualize ${OpenCV_LIBS})
 
