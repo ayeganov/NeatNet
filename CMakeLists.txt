@@ -15,3 +15,6 @@ add_subdirectory(test)
 
 set(VERSION 1.0.0)
 add_library(NeatNet_${VERSION} SHARED ${SRC_FILES} ${INCLUDE_FILES})
+
+install(FILES ${INCLUDE_FILES} DESTINATION include/neatnet)
+install(TARGETS NeatNet_${VERSION} LIBRARY DESTINATION lib NAMELINK_ONLY)
