@@ -70,6 +70,8 @@ public:
     Genome BestGenome() const { return m_best_genomes[0]; }
     std::vector<Genome> GetGenomes() const { return m_genomes; }
 
+    const std::vector<Species>& GetSpecies() { return m_species; }
+
 };
 
 

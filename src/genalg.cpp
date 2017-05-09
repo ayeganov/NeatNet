@@ -1,3 +1,5 @@
+#include <cassert>
+
 #include "cpplinq.hpp"
 
 #include "genalg.h"
@@ -108,25 +110,17 @@ void GenAlg::PurgeSpecies()
 {
     auto current_species = m_species.begin();
     auto num_gens_allowed_no_improv = m_params.NumGensAllowedNoImprov();
-    double required_to_spawn = 0.0;
     while(current_species != m_species.end())
     {
-        // once we have enough species to create a new generation - remove all others
-        if(required_to_spawn >= m_params.PopulationSize())
-        {
-            current_species = m_species.erase(current_species);
-            continue;
-        }
-
         current_species->Purge();
 
         if(current_species->GensNoImprovement() > num_gens_allowed_no_improv &&
             current_species->LeaderFitness() < m_best_ever_fitness)
         {
             current_species = m_species.erase(current_species);
+            --current_species;
             continue;
         }
-        required_to_spawn += std::max(current_species->SpawnsRequired(), 1.0);
         ++current_species;
     }
 }
@@ -135,6 +129,7 @@ void GenAlg::UpdateGenomeScores(const std::vector<double>& fitness_scores)
 {
     for(int i = 0; i < m_genomes.size(); ++i)
     {
+        assert(fitness_scores[i] >= 0);
         m_genomes[i].SetFitness(fitness_scores[i]);
     }
     std::sort(m_genomes.begin(), m_genomes.end());
@@ -154,27 +149,28 @@ void GenAlg::UpdateBestGenomes()
 
 void GenAlg::SpeciateGenomes()
 {
+    bool added = false;
     auto compatibility_threshold = m_params.CompatibilityThreshold();
     for(auto& genome : m_genomes)
     {
-        bool is_new_species = true;
         for(auto& species : m_species)
         {
             double compat_score = genome.CalculateCompatabilityScore(species.Leader());
-            if(compat_score > compatibility_threshold)
+            if(compat_score <= compatibility_threshold)
             {
                 species.AddMember(genome);
                 genome.SetSpeciesID(species.ID());
-                is_new_species = false;
+                added = true;
                 break;
             }
         }
 
-        if(is_new_species)
+        if(!added)
         {
             Species new_species(genome, m_next_species_id++, &m_params);
             m_species.push_back(new_species);
         }
+        added = false;
     }
 
     std::sort(m_species.begin(), m_species.end());
@@ -234,7 +230,7 @@ std::vector<Genome> GenAlg::CreateNewPopulation()
 
         bool leader_taken = false;
         int species_num_to_spawn = std::round(species.SpawnsRequired());
-        while(species_num_to_spawn > 0)
+        while(species_num_to_spawn >= 0)
         {
             Genome baby;
             if(!leader_taken)
@@ -252,9 +248,13 @@ std::vector<Genome> GenAlg::CreateNewPopulation()
                 baby.SetID(m_next_genome_id++);
             }
 
-            if(baby.NumHiddenNeurons() < m_params.MaxNeurons()) baby.AddNeuron(m_params.AddNeuronChance(),
-                                                             m_inno_db,
-                                                             m_params.NumFindOldLinkAttempts());
+            if(baby.NumHiddenNeurons() < m_params.MaxNeurons())
+            {
+                baby.AddNeuron(m_params.AddNeuronChance(),
+                               m_inno_db,
+                               m_params.NumFindOldLinkAttempts());
+            }
+
             baby.AddLink(m_params.AddLinkChance(),
                          m_params.AddRecurLinkChance(),
                          m_inno_db,

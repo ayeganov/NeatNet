@@ -49,7 +49,7 @@ InnovationID InnovationDB::AddLinkInnovation(NeuronID neuron_from_id, NeuronID n
 
 NeuronID InnovationDB::AddNeuronInnovation(NeuronID neuron_from, NeuronID neuron_to, NeuronType neuron_type, double splix_x, double split_y)
 {
-    Innovation new_innovation(InnovationType::NEW_NEURON, m_next_innovation_id++, neuron_from, neuron_to);
+    Innovation new_innovation(InnovationType::NEW_NEURON, m_next_innovation_id, neuron_from, neuron_to);
     new_innovation.NewNeuronID = m_next_neuron_id++;
     new_innovation.Neuron_Type = neuron_type;
     new_innovation.SplitX = splix_x;

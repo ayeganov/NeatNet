@@ -188,10 +188,12 @@ public:
         m_total = 0.0;
         m_max_value = std::numeric_limits<double>::min();
         m_min_value = std::numeric_limits<double>::max();
+        m_last_value = 0;
     }
 
     void Push(double value)
     {
+        m_last_value = value;
         m_total += value;
         m_max_value = std::max(value, m_max_value);
         m_min_value = std::min(value, m_min_value);
@@ -282,11 +284,17 @@ public:
         return m_max_value;
     }
 
+    double LastValue() const
+    {
+        return m_last_value;
+    }
+
 private:
     int m_num_values;
     double m_old_mean, m_new_mean, m_old_std, m_new_std;
     double m_total;
     double m_min_value, m_max_value;
+    double m_last_value;
 };
 
 
