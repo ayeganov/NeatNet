@@ -9,6 +9,8 @@ set(test_innovation_sources "../src/innovation.cpp" "../src/genes.cpp" "../src/p
 add_executable(test_innovation ${test_innovation_sources})
 
 set(test_xor_sources "../src/genalg.cpp" "test_xor.cpp" "../src/genes.cpp" "../src/genome.cpp" "../src/innovation.cpp" "../src/phenotype.cpp" "../src/species.cpp" "../src/params.cpp" "../src/netvisualize.cpp")
+set(xor_params_json "./xor_params.json")
+file(COPY ${xor_params_json} DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 add_executable(test_xor ${test_xor_sources})
 target_link_libraries(test_xor ${OpenCV_LIBS})
 

@@ -36,7 +36,8 @@ SCENARIO("GenAlg gets initialized with population size of 150, 2 inputs and 1 ou
 {
     GIVEN("A task of learning a XOR function")
     {
-        neat::GenAlg ga(NUM_INPUTS, NUM_OUTPUTS);
+        neat::Params p("xor_params.json");
+        neat::GenAlg ga(NUM_INPUTS, NUM_OUTPUTS, p);
         auto brains = ga.CreateNeuralNetworks();
         bool solved = false;
 
@@ -56,11 +57,12 @@ SCENARIO("GenAlg gets initialized with population size of 150, 2 inputs and 1 ou
                     {
                         auto stats = ga.SpeciesStats();
                         std::cout << "Mean: " << stats.Mean() << ", Max: " << stats.MaxValue() << ", Min: " << stats.MinValue() << std::endl;
-                        break;
+                        goto done;
                     }
                 }
                 brains = ga.Epoch(fitnesses);
             }
+done:
             REQUIRE(solved);
         }
     }

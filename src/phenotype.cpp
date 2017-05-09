@@ -9,7 +9,7 @@ namespace neat
 
 double sigmoid(double input, double act_response)
 {
-    return (1.0 / (1.0 + std::exp(-4.9 * input)));
+    return (1.0 / (1.0 + std::exp(-input / act_response)));
 }
 
 

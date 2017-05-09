@@ -1,3 +1,5 @@
+#include <cassert>
+
 #include "cpplinq.hpp"
 #include "species.h"
 #include "utils.h"
@@ -40,6 +42,7 @@ void Species::AdjustFitness()
     for(auto genome : m_members)
     {
         double fitness = genome->Fitness();
+        assert(fitness >= 0);
 
         if(m_age < m_params->YoungBonusThreshold())
         {
@@ -50,6 +53,8 @@ void Species::AdjustFitness()
             fitness *= m_params->OldPenaltyScaler();
         }
         double shared_fitness = fitness / m_members.size();
+
+        assert(shared_fitness >= 0);
         genome->SetAjustedFitness(shared_fitness);
     }
 }
@@ -61,6 +66,7 @@ void Species::CalculateSpawnAmount()
             {
                 return g->AmountToSpawn();
             });
+    assert(m_spawns_required >= 0);
 }
 
 Genome* Species::Spawn()
