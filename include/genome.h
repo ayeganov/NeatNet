@@ -169,6 +169,7 @@ public:
     void SetAmountToSpawn(double to_spawn) { m_amount_to_spawn = to_spawn; }
 
     void SetSpeciesID(SpeciesID id) { m_species_id = id; }
+    SpeciesID GetSpeciesID() const { return m_species_id; }
 };
 
 

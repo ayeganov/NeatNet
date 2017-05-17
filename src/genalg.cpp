@@ -88,6 +88,19 @@ SNeuralNetPtr GenAlg::BestNN() const
 }
 
 
+const Species* const GenAlg::GetSpecie(SpeciesID id) const
+{
+    for(auto& s : m_species)
+    {
+        if(s.ID() == id)
+        {
+            return &s;
+        }
+    }
+    throw new std::invalid_argument("Invalid SpeciesID provided: " + std::to_string(id));
+}
+
+
 //=================================PRIVATE METHODS==============================
 
 void GenAlg::RunEpochStatistics()
@@ -168,6 +181,7 @@ void GenAlg::SpeciateGenomes()
         if(!added)
         {
             Species new_species(genome, m_next_species_id++, &m_params);
+            genome.SetSpeciesID(new_species.ID());
             m_species.push_back(new_species);
         }
         added = false;

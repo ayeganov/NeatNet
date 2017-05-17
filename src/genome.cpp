@@ -59,19 +59,20 @@ Genome::Genome(GenomeID id, std::size_t inputs, std::size_t outputs, Params* par
 
 
 Genome::Genome(GenomeID id,
-                std::vector<NeuronGene> neuron_genes,
-                std::vector<LinkGene> link_genes,
-                std::size_t num_inputs,
-                std::size_t num_outputs,
-                Params* params):m_genome_id(id),
-                                m_neuron_genes(neuron_genes),
-                                m_link_genes(link_genes),
-                                m_fitness(0),
-                                m_adjusted_fitness(0),
-                                m_amount_to_spawn(0),
-                                m_num_inputs(num_inputs),
-                                m_num_outputs(num_outputs),
-                                m_params(params)
+               std::vector<NeuronGene> neuron_genes,
+               std::vector<LinkGene> link_genes,
+               std::size_t num_inputs,
+               std::size_t num_outputs,
+               Params* params):m_genome_id(id),
+                               m_neuron_genes(neuron_genes),
+                               m_link_genes(link_genes),
+                               m_fitness(0),
+                               m_adjusted_fitness(0),
+                               m_amount_to_spawn(0),
+                               m_species_id(0),
+                               m_num_inputs(num_inputs),
+                               m_num_outputs(num_outputs),
+                               m_params(params)
 {}
 
 
@@ -551,6 +552,7 @@ Genome Genome::Crossover(const Genome& mom, const InnovationDB& inno_db, GenomeI
                 m_num_outputs,
                 m_params);
 
+    baby.SetSpeciesID(best == MOM ? mom.GetSpeciesID() : dad.GetSpeciesID());
     return baby;
 }
 

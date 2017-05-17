@@ -71,6 +71,7 @@ public:
     std::vector<Genome> GetGenomes() const { return m_genomes; }
 
     const std::vector<Species>& GetSpecies() { return m_species; }
+    const Species* const GetSpecie(SpeciesID id) const;
 
 };
 
