@@ -13,8 +13,8 @@ using Level = double;
 using Layer = std::vector<Neuron>;
 
 
-cv::Mat visualize_net(SNeuralNetPtr nn, bool draw_input=true);
-cv::Mat visualize_net(const NeuralNet& nn, bool draw_input=true);
+cv::Mat visualize_net(SNeuralNetPtr nn, int width, int height, bool draw_input=true);
+cv::Mat visualize_net(const NeuralNet& nn, int width, int height, bool draw_input=true);
 
 
 };

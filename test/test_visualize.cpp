@@ -24,7 +24,7 @@ SCENARIO("Create an image of a neural network")
         WHEN("Neural network is visualized and test image is read")
         {
             bool draw_input = true;
-            auto image = visualize_net(nn, draw_input);
+            auto image = visualize_net(nn, 500, 500, draw_input);
             cv::imwrite("new_image.png", image);
             auto test_image = cv::imread("test_image.png");
 
