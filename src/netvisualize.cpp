@@ -1,5 +1,6 @@
 #include <map>
 #include <set>
+#include <stdexcept>
 
 #include <opencv2/imgproc.hpp>
 
@@ -12,13 +13,14 @@ namespace neat
 {
 
 const cv::Scalar BACKGROUND_CLR(223, 240, 162);
-const cv::Scalar NEURON_CLR(0, 0, 255);
-const cv::Scalar TEXT_CLR(255, 0, 0);
+const cv::Scalar NEURON_CLR(237, 149, 100);
+const cv::Scalar RECUR_NEURON_CLR(32, 165, 218);
+const cv::Scalar TEXT_CLR(0, 0, 200);
 const cv::Scalar FORWARD_LINK_CLR(110, 220, 0);
 const cv::Scalar RECUR_LINK_CLR(0, 0, 200);
-const int IMG_HEIGHT = 500;
-const int IMG_WIDTH = 1200;
-const double RADIUS = 10;
+const int IMG_HEIGHT_MIN = 100;
+const int IMG_WIDTH_MIN = 100;
+const double RADIUS = 3;
 
 
 void traverse_neural_chain(std::map<Level, Layer>& layers,
@@ -68,7 +70,7 @@ std::map<Level, Layer> get_layers(const std::vector<Neuron>& neurons)
 }
 
 
-std::map<NeuronID, cv::Point> draw_neurons(cv::Mat& image, std::map<Level, Layer>& layers, bool draw_input)
+std::map<NeuronID, cv::Point> calc_neuron_positions(std::map<Level, Layer>& layers, int width, int height, bool include_input)
 {
     using namespace cpplinq;
 
@@ -88,13 +90,14 @@ std::map<NeuronID, cv::Point> draw_neurons(cv::Mat& image, std::map<Level, Layer
     {
         double depth = depth_size.first;
 
-        // input drawing check
-        if(!draw_input && depth == 0) continue;
+        // Depth 0 contains all input neurons - ignore them if input is set to
+        // be ignored
+        if(depth == 0 && !include_input) continue;
 
         double layer_num = depth_size.second;
         auto& layer = layers[depth];
-        double x_increment = static_cast<double>(IMG_WIDTH) / (layer.size() + 1);
-        double y_increment = static_cast<double>(IMG_HEIGHT) / (layers.size() + 1);
+        double x_increment = static_cast<double>(width) / (layer.size() + 1);
+        double y_increment = static_cast<double>(height) / (layers.size() + 1);
 
         auto x_positions = range(1, layer.size()) >> select([&x_increment](int neuron_num)
             {
@@ -112,15 +115,10 @@ std::map<NeuronID, cv::Point> draw_neurons(cv::Mat& image, std::map<Level, Layer
 
             cv::Point position(x_pos, y_position);
             neuron_positions[neuron.ID] = position;
-
-            std::string neuron_id_txt = std::to_string(neuron.ID);
-            putText(image, neuron_id_txt, position, cv::FONT_HERSHEY_SIMPLEX, 0.3, TEXT_CLR, 1, CV_AA);
-
-            circle(image, position, RADIUS, NEURON_CLR, 1, CV_AA);
         }
     }
 
-    return std::move(neuron_positions);
+    return neuron_positions;
 }
 
 
@@ -150,17 +148,8 @@ void draw_links(cv::Mat& image, const std::vector<Neuron>& neurons, std::map<Neu
                 // recurrent by sending output to neuron in previous layer
                 else
                 {
-                    // draw recurrent links on the right
                     link_color = RECUR_LINK_CLR;
-                    from_position.x += RADIUS;
-                    to_position.x += RADIUS;
                 }
-            }
-            else
-            {
-                // draw regular links on the left
-                from_position.x -= RADIUS;
-                to_position.x -= RADIUS;
             }
 
             cv::line(image, from_position, to_position, link_color, 1, CV_AA);
@@ -168,24 +157,45 @@ void draw_links(cv::Mat& image, const std::vector<Neuron>& neurons, std::map<Neu
     }
 }
 
-cv::Mat visualize_net(const NeuralNet& nn, bool draw_input)
+
+void draw_neurons(cv::Mat& image, std::map<NeuronID, cv::Point> neuron_positions)
+{
+    for(auto it = neuron_positions.begin(); it != neuron_positions.end(); ++it)
+    {
+        circle(image, it->second, RADIUS, NEURON_CLR, CV_FILLED, CV_AA);
+    }
+}
+
+
+cv::Mat visualize_net(const NeuralNet& nn, int width, int height, bool draw_input)
 {
     using namespace cpplinq;
-    cv::Mat image = cv::Mat::zeros(IMG_HEIGHT, IMG_WIDTH, CV_8UC3);
+    if(width < IMG_WIDTH_MIN)
+    {
+        throw new std::invalid_argument("Image width is too small: " + std::to_string(width) + ", minimum: " + std::to_string(IMG_WIDTH_MIN));
+    }
+
+    if(height < IMG_HEIGHT_MIN)
+    {
+        throw new std::invalid_argument("Image height is too small: " + std::to_string(width) + ", minimum: " + std::to_string(IMG_HEIGHT_MIN));
+    }
+
+    cv::Mat image = cv::Mat::zeros(height, width, CV_8UC3);
     image.setTo(BACKGROUND_CLR);
 
     auto layers = get_layers(nn.GetNeurons());
 
-    std::map<NeuronID, cv::Point> neuron_positions = draw_neurons(image, layers, draw_input);
+    std::map<NeuronID, cv::Point> neuron_positions = calc_neuron_positions(layers, width, height, draw_input);
 
     draw_links(image, nn.GetNeurons(), neuron_positions, draw_input);
+    draw_neurons(image, neuron_positions);
 
     return image;
 }
 
-cv::Mat visualize_net(SNeuralNetPtr pnn, bool draw_input)
+cv::Mat visualize_net(SNeuralNetPtr pnn, int width, int height, bool draw_input)
 {
-    return visualize_net(*pnn.get(), draw_input);
+    return visualize_net(*pnn.get(), width, height, draw_input);
 }
 
 
