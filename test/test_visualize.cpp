@@ -19,12 +19,15 @@ SCENARIO("Create an image of a neural network")
     {
         neat::Params p;
         neat::Genome g(1, 3, 2, &p);
+        neat::InnovationDB db(g.NeuronGenes(), g.NeuronLinks());
+        g.ConnectNeurons(5, 5, db);
+        g.ConnectNeurons(6, 3, db);
         neat::NeuralNet nn(g);
 
         WHEN("Neural network is visualized and test image is read")
         {
             bool draw_input = true;
-            auto image = visualize_net(nn, draw_input);
+            auto image = visualize_net(nn, 300, 200, draw_input);
             cv::imwrite("new_image.png", image);
             auto test_image = cv::imread("test_image.png");
 
