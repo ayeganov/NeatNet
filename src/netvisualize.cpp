@@ -21,7 +21,27 @@ const cv::Scalar RECUR_LINK_CLR(0, 0, 200);
 const int IMG_HEIGHT_MIN = 100;
 const int IMG_WIDTH_MIN = 100;
 const double RADIUS = 3;
+const int HIGH_WEIGHT_THICKNESS = 2;
+const int LOW_WEIGHT_THICKNESS = 1;
+const double NO_THICKNESS_TSHLD = 0.05;
+const double LOW_WEIGHT_TSHLD = 0.5;
 
+
+// TODO: Draw striped line
+void draw_striped_line(cv::Mat& img, cv::Point pt1, cv::Point pt2, const cv::Scalar& color, int thickness=1, int lineType=cv::LINE_8, int shift=0)
+{
+    cv::line(img, pt1, pt2, color, thickness, cv::LINE_AA);
+
+//    cv::LineIterator it(img, pt1, pt2, 8);
+//    for(int i = 0; i < it.count; ++i,++it)
+//    {
+//        std::cout << "Point: " << it.pos() << std::endl;
+//        if(i % 5 != 0)
+//        {
+//            img.at<cv::Vec4b>(it.pos()) = BACKGROUND_CLR;
+//        }
+//    }
+}
 
 void traverse_neural_chain(std::map<Level, Layer>& layers,
                            std::set<NeuronID>& visited,
@@ -97,7 +117,7 @@ std::map<NeuronID, cv::Point> calc_neuron_positions(std::map<Level, Layer>& laye
         double layer_num = depth_size.second;
         auto& layer = layers[depth];
         double x_increment = static_cast<double>(width) / (layer.size() + 1);
-        double y_increment = static_cast<double>(height) / (layers.size() + 1);
+        double y_increment = static_cast<double>(height) / (layers.size() - 1) - (2 * RADIUS);
 
         auto x_positions = range(1, layer.size()) >> select([&x_increment](int neuron_num)
             {
@@ -152,7 +172,20 @@ void draw_links(cv::Mat& image, const std::vector<Neuron>& neurons, std::map<Neu
                 }
             }
 
-            cv::line(image, from_position, to_position, link_color, 1, CV_AA);
+            double abs_weight = std::abs(link.Weight);
+            if(abs_weight > NO_THICKNESS_TSHLD)
+            {
+                int thickness = abs_weight <= LOW_WEIGHT_TSHLD ? LOW_WEIGHT_THICKNESS : HIGH_WEIGHT_THICKNESS;
+                bool striped = link.Weight < 0;
+                if(striped)
+                {
+                    draw_striped_line(image, from_position, to_position, link_color, thickness, cv::LINE_AA);
+                }
+                else
+                {
+                    cv::line(image, from_position, to_position, link_color, thickness, cv::LINE_AA);
+                }
+            }
         }
     }
 }

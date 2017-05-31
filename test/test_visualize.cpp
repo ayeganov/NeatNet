@@ -17,6 +17,7 @@ SCENARIO("Create an image of a neural network")
 {
     GIVEN("A neural network")
     {
+        Utils::DefaultRandom::Instance(1);
         neat::Params p;
         neat::Genome g(1, 3, 2, &p);
         neat::InnovationDB db(g.NeuronGenes(), g.NeuronLinks());
