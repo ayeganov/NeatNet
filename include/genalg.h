@@ -68,7 +68,8 @@ public:
 
     SNeuralNetPtr BestNN() const;
     Genome BestGenome() const { return m_best_genomes[0]; }
-    std::vector<Genome> GetGenomes() const { return m_genomes; }
+    const std::vector<Genome>& BestGenomes() const { return m_best_genomes; }
+    const std::vector<Genome>& GetGenomes() const { return m_genomes; }
 
     const std::vector<Species>& GetSpecies() { return m_species; }
     const Species* const GetSpecie(SpeciesID id) const;
