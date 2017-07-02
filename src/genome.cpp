@@ -354,7 +354,7 @@ void Genome::MutateActivationResponse(double mutation_prob, double max_perturbat
 }
 
 
-double Genome::CalculateCompatabilityScore(const Genome& other) const
+double Genome::CalculateDifferenceScore(const Genome& other) const
 {
     //travel down the length of each genome counting the number of
     //disjoint genes, the number of excess genes and the number of

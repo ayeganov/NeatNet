@@ -116,7 +116,7 @@ public:
     void MutateActivationResponse(double mutation_prob,
                                   double max_perturbation);
 
-    double CalculateCompatabilityScore(const Genome& other) const;
+    double CalculateDifferenceScore(const Genome& other) const;
 
     Genome Crossover(const Genome& other, const InnovationDB& inno_db, GenomeID genome_id);
 

@@ -361,7 +361,7 @@ SCENARIO("Genomes get crossed over", "[Crossover]")
 
 
 // Add more cases to this scenario
-SCENARIO("Compatibility is calculated between genomes", "[CalculateCompatabilityScore]")
+SCENARIO("Compatibility is calculated between genomes", "[CalculateDifferenceScore]")
 {
     using namespace cpplinq;
     GIVEN("Two identical genomes")
@@ -372,7 +372,7 @@ SCENARIO("Compatibility is calculated between genomes", "[CalculateCompatability
 
         WHEN("Their compatibility is calculated")
         {
-            double score = g1.CalculateCompatabilityScore(g2);
+            double score = g1.CalculateDifferenceScore(g2);
 
             THEN("It is equal to 0")
             {

@@ -168,8 +168,8 @@ void GenAlg::SpeciateGenomes()
     {
         for(auto& species : m_species)
         {
-            double compat_score = genome.CalculateCompatabilityScore(species.Leader());
-            if(compat_score <= compatibility_threshold)
+            double diff_score = genome.CalculateDifferenceScore(species.Leader());
+            if(diff_score <= compatibility_threshold)
             {
                 species.AddMember(genome);
                 genome.SetSpeciesID(species.ID());
