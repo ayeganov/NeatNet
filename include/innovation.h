@@ -91,8 +91,8 @@ public:
 
     InnovationDB()
         : m_innovations(),
-          m_next_neuron_id(1),
-          m_next_innovation_id(1)
+          m_next_neuron_id(0),
+          m_next_innovation_id(0)
     {}
 
     InnovationID GetInnovationId(NeuronID neuron_id_from, NeuronID neuron_id_to, InnovationType type);

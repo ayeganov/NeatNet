@@ -23,19 +23,19 @@ Genome::Genome(GenomeID id, std::size_t inputs, std::size_t outputs, Params* par
 
     m_neuron_genes = cpplinq::range(0, inputs)
         >> cpplinq::select([&](int i){ return NeuronGene(NeuronType::INPUT,
-                                                         i + 1,
+                                                         i,
                                                          0,
                                                          (i+2)*input_row_slice);
                                     })
         >> cpplinq::to_vector();
 
-    m_neuron_genes.push_back(NeuronGene(NeuronType::BIAS, inputs + 1, 0, input_row_slice));
+    m_neuron_genes.push_back(NeuronGene(NeuronType::BIAS, inputs, 0, input_row_slice));
 
     double output_row_slice = 1 / (double)(outputs+1);
 
     auto output_neurons = cpplinq::range(1, outputs)
         >> cpplinq::select([&](int i) { return NeuronGene(NeuronType::OUTPUT,
-                                                          i + inputs + 1,
+                                                          i + inputs,
                                                           1,
                                                           (i+1)*output_row_slice);
                                       })
@@ -109,25 +109,26 @@ bool Genome::AddNeuron(double mutation_prob,
     // if the genome is small then prefer older links to avoid a chaining
     // effect.
     const int SizeThreshold = m_num_inputs + m_num_outputs + 5;
-    if(m_neuron_genes.size() < SizeThreshold)
+    if(m_link_genes.size() < SizeThreshold)
     {
         int upper_bound = m_link_genes.size() - 1 - (int)std::sqrt(m_link_genes.size());
         while(num_trys_to_find_old_link-- && chosen_link < 0)
         {
             chosen_link = find_link_idx(upper_bound);
         }
-    }
 
-    int attempts = 5;
-    // if couldn't find an older link then go all out
-    while(chosen_link == -1 && attempts--)
-    {
-        chosen_link = find_link_idx(m_link_genes.size()-1);
-    }
+        if(chosen_link == -1)
+        {
+            return false;
+        }
 
-    if(chosen_link == -1)
+    }
+    else
     {
-        return false;
+        while(chosen_link == -1)
+        {
+            chosen_link = find_link_idx(m_link_genes.size()-1);
+        }
     }
 
     AddNeuronToLink(m_link_genes[chosen_link], inno_db);
@@ -187,6 +188,17 @@ void Genome::AddNeuronToLink(LinkGene& link, InnovationDB& inno_db)
     {
         NeuronID neuron_id = inno_db.NextNeuronID();
 
+        inno_db.AddNeuronInnovation(from_neuron.ID,
+                                    to_neuron.ID,
+                                    NeuronType::HIDDEN,
+                                    new_width,
+                                    new_depth);
+        NeuronGene ng(NeuronType::HIDDEN,
+                      neuron_id,
+                      new_depth,
+                      new_width);
+        m_neuron_genes.push_back(ng);
+
         InnovationID link_id = inno_db.AddLinkInnovation(from, neuron_id);
         LinkGene bottom_link(from,
                              neuron_id,
@@ -198,21 +210,10 @@ void Genome::AddNeuronToLink(LinkGene& link, InnovationDB& inno_db)
         link_id = inno_db.AddLinkInnovation(neuron_id, to);
         LinkGene top_link(neuron_id,
                           to,
-                          random.RandomClamped<double>(),
+                          original_weight,
                           true,
                           link_id);
         m_link_genes.push_back(top_link);
-
-        inno_db.AddNeuronInnovation(from_neuron.ID,
-                                    to_neuron.ID,
-                                    NeuronType::HIDDEN,
-                                    new_width,
-                                    new_depth);
-        NeuronGene ng(NeuronType::HIDDEN,
-                      neuron_id,
-                      new_depth,
-                      new_width);
-        m_neuron_genes.push_back(ng);
     }
     else
     {
@@ -354,15 +355,14 @@ void Genome::MutateActivationResponse(double mutation_prob, double max_perturbat
 }
 
 
-double Genome::CalculateCompatabilityScore(const Genome& other) const
+double Genome::CalculateDifferenceScore(const Genome& other) const
 {
     //travel down the length of each genome counting the number of
     //disjoint genes, the number of excess genes and the number of
     //matched genes
     double num_disjoint = 0;
     int num_matched  = 0;
-    int num_excess = NumLinks() > other.NumLinks()
-                     ? NumLinks() - other.NumLinks() : other.NumLinks() - NumLinks();
+    int num_excess = 0;
 
     //this records the summed difference of weights in matched genes
     double weight_difference = 0;
@@ -374,8 +374,7 @@ double Genome::CalculateCompatabilityScore(const Genome& other) const
 
     auto increase = [](int value, int limit) { return std::min(++value, limit); };
 
-    // REMARK: This is different from Matt's code
-    while ( g1 < NumLinks() && g2 < other.NumLinks() )
+    while (g1 < NumLinks() || g2 < other.NumLinks())
     {
         //get innovation numbers for each gene at this point
         InnovationID id1 = m_link_genes[g1].InnovID;
@@ -384,11 +383,15 @@ double Genome::CalculateCompatabilityScore(const Genome& other) const
         if(g1 == NumLinks())
         {
             g2 = increase(g2, other.NumLinks());
+            ++num_excess;
+            continue;
         }
 
         if(g2 == other.NumLinks())
         {
             g1 = increase(g1, NumLinks());
+            ++num_excess;
+            continue;
         }
 
         //innovation numbers are identical so increase the matched score
@@ -417,7 +420,7 @@ double Genome::CalculateCompatabilityScore(const Genome& other) const
     }//end while
 
     //get the length of the longest genome
-    int longest = std::max(other.NumNeurons(), NumNeurons());
+    int longest = std::max(other.NumLinks(), NumLinks());
 
     //fix num matched if no links matched
     num_matched = std::max(num_matched, 1);

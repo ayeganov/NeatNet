@@ -18,8 +18,7 @@ InnovationDB::InnovationDB(const std::vector<NeuronGene>& start_neuron_genes,
     // ... then create neuron innovations
     for(auto const& ng : start_neuron_genes)
     {
-        Innovation innov(ng, m_next_innovation_id++);
-        m_innovations.push_back(innov);
+        m_innovations.emplace_back(ng, m_next_innovation_id++);
     }
     m_next_neuron_id += start_neuron_genes.size();
 }
@@ -41,15 +40,14 @@ InnovationID InnovationDB::GetInnovationId(NeuronID neuron_id_from, NeuronID neu
 
 InnovationID InnovationDB::AddLinkInnovation(NeuronID neuron_from_id, NeuronID neuron_to_id)
 {
-    Innovation new_innovation(InnovationType::NEW_LINK, m_next_innovation_id, neuron_from_id, neuron_to_id);
-    m_innovations.push_back(new_innovation);
+    m_innovations.emplace_back(InnovationType::NEW_LINK, m_next_innovation_id, neuron_from_id, neuron_to_id);
     return m_next_innovation_id++;
 }
 
 
 NeuronID InnovationDB::AddNeuronInnovation(NeuronID neuron_from, NeuronID neuron_to, NeuronType neuron_type, double splix_x, double split_y)
 {
-    Innovation new_innovation(InnovationType::NEW_NEURON, m_next_innovation_id, neuron_from, neuron_to);
+    Innovation new_innovation(InnovationType::NEW_NEURON, m_next_innovation_id++, neuron_from, neuron_to);
     new_innovation.NewNeuronID = m_next_neuron_id++;
     new_innovation.Neuron_Type = neuron_type;
     new_innovation.SplitX = splix_x;

@@ -80,9 +80,9 @@ Genome* Species::Spawn()
     }
     else
     {
-        int max_idx = m_members.size() * m_params->SurvivalRate();
+        int max_idx = m_members.size() * m_params->SurvivalRate() + 1;
         int the_one = random.RandomClamped(0, max_idx);
-        return cpplinq::from(m_members) >> cpplinq::element_at_or_default(the_one);
+        return m_members[the_one];
     }
 }
 

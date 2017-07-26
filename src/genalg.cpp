@@ -43,6 +43,11 @@ GenAlg::GenAlg(std::size_t num_inputs,
 
 std::vector<SNeuralNetPtr> GenAlg::Epoch(const std::vector<double>& fitness_scores)
 {
+    if(m_genomes.size() != fitness_scores.size())
+    {
+        std::cerr << "Error: GenAlg::Epoch number of scores doesn't match number of genomes" << std::endl;
+    }
+
     // Remove species that have not been improving for configured number of
     // generations
     PurgeSpecies();
@@ -131,10 +136,11 @@ void GenAlg::PurgeSpecies()
             current_species->LeaderFitness() < m_best_ever_fitness)
         {
             current_species = m_species.erase(current_species);
-            --current_species;
-            continue;
         }
-        ++current_species;
+        else
+        {
+            ++current_species;
+        }
     }
 }
 
@@ -168,8 +174,8 @@ void GenAlg::SpeciateGenomes()
     {
         for(auto& species : m_species)
         {
-            double compat_score = genome.CalculateCompatabilityScore(species.Leader());
-            if(compat_score <= compatibility_threshold)
+            double diff_score = genome.CalculateDifferenceScore(species.Leader());
+            if(diff_score <= compatibility_threshold)
             {
                 species.AddMember(genome);
                 genome.SetSpeciesID(species.ID());
@@ -186,8 +192,6 @@ void GenAlg::SpeciateGenomes()
         }
         added = false;
     }
-
-    std::sort(m_species.begin(), m_species.end());
 }
 
 void GenAlg::UpdateSpeciesFitness()
@@ -236,6 +240,7 @@ std::vector<Genome> GenAlg::CreateNewPopulation()
     std::vector<Genome> new_pop;
     auto population_size = m_params.PopulationSize();
 
+    Genome baby;
     auto total_num_spawned = new_pop.size();
     for(auto& species : m_species)
     {
@@ -244,46 +249,52 @@ std::vector<Genome> GenAlg::CreateNewPopulation()
 
         bool leader_taken = false;
         int species_num_to_spawn = std::round(species.SpawnsRequired());
-        while(species_num_to_spawn >= 0)
+        while(species_num_to_spawn--)
         {
-            Genome baby;
             if(!leader_taken)
             {
                 baby = species.Leader();
                 leader_taken = true;
             }
-            else if(species.Size() > 1)
-            {
-                baby = MakeCrossoverBaby(species, m_next_genome_id++);
-            }
             else
             {
-                baby = *species.Spawn();
-                baby.SetID(m_next_genome_id++);
+                if(species.Size() == 1)
+                {
+                    baby = *species.Spawn();
+                    baby.SetID(m_next_genome_id++);
+                }
+                else if(species.Size() > 1)
+                {
+                    baby = MakeCrossoverBaby(species, m_next_genome_id++, baby);
+                }
+                else
+                {
+                    baby = *species.Spawn();
+                    baby.SetID(m_next_genome_id++);
+                }
+
+                if(baby.NumHiddenNeurons() < m_params.MaxNeurons())
+                {
+                    baby.AddNeuron(m_params.AddNeuronChance(),
+                                   m_inno_db,
+                                   m_params.NumFindOldLinkAttempts());
+                }
+
+                baby.AddLink(m_params.AddLinkChance(),
+                             m_params.AddRecurLinkChance(),
+                             m_inno_db,
+                             m_params.NumAddRecurLinkAttempts(),
+                             m_params.NumAddLinkAttempts());
+
+                baby.MutateWeights(m_params.MutationChance(),
+                                   m_params.NewWeightChance(),
+                                   m_params.MaxPerturbation());
+                baby.MutateActivationResponse(m_params.ActivationMutationChance(),
+                                              m_params.MaxActivationPerturbation());
             }
-
-            if(baby.NumHiddenNeurons() < m_params.MaxNeurons())
-            {
-                baby.AddNeuron(m_params.AddNeuronChance(),
-                               m_inno_db,
-                               m_params.NumFindOldLinkAttempts());
-            }
-
-            baby.AddLink(m_params.AddLinkChance(),
-                         m_params.AddRecurLinkChance(),
-                         m_inno_db,
-                         m_params.NumAddRecurLinkAttempts(),
-                         m_params.NumAddLinkAttempts());
-
-            baby.MutateWeights(m_params.MutationChance(),
-                               m_params.NewWeightChance(),
-                               m_params.MaxPerturbation());
-            baby.MutateActivationResponse(m_params.ActivationMutationChance(),
-                                          m_params.MaxActivationPerturbation());
             baby.SortLinks();
 
             new_pop.push_back(baby);
-            --species_num_to_spawn;
             ++total_num_spawned;
 
             if(total_num_spawned >= population_size)
@@ -305,7 +316,7 @@ std::vector<Genome> GenAlg::CreateNewPopulation()
     return new_pop;
 }
 
-Genome GenAlg::MakeCrossoverBaby(Species& species, GenomeID next_id)
+Genome GenAlg::MakeCrossoverBaby(Species& species, GenomeID next_id, Genome& prev_baby)
 {
     Genome baby;
     Genome* mom = species.Spawn();
@@ -315,23 +326,19 @@ Genome GenAlg::MakeCrossoverBaby(Species& species, GenomeID next_id)
     {
         // find dad
         int num_attempts = 5;
-        Genome* dad = range(0, num_attempts) >> select([&species](int _)
-            {
-                return species.Spawn();
-            })
-        >> cpplinq::first_or_default([&mom](const Genome* dad)
-            {
-                return dad->ID() != mom->ID();
-            });
-
-        if(dad)
+        Genome* dad = species.Spawn();
+        while(dad->ID() == mom->ID() && num_attempts--)
         {
-            baby = mom->Crossover(*dad, m_inno_db, next_id);
+            dad = species.Spawn();
+        }
+
+        if(dad->ID() != mom->ID())
+        {
+            baby = dad->Crossover(*mom, m_inno_db, next_id);
         }
         else
         {
-            // couldn't find dad, we'll have to settle for mom alone
-            baby = *mom;
+            baby = prev_baby;
         }
     }
     else
