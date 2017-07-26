@@ -9,7 +9,6 @@
 #include "utils.h"
 
 
-const int POP_SIZE = 150;
 const int NUM_INPUTS = 2;
 const int NUM_OUTPUTS = 1;
 const double WIN_FITNESS = 15.95;
@@ -32,7 +31,7 @@ double xor_fitness(neat::SNeuralNetPtr brain)
 }
 
 
-SCENARIO("GenAlg gets initialized with population size of 150, 2 inputs and 1 output.", "[genalg]")
+SCENARIO("GenAlg gets initialized with population size of 40, 2 inputs and 1 output.", "[genalg]")
 {
     GIVEN("A task of learning a XOR function")
     {
@@ -43,7 +42,7 @@ SCENARIO("GenAlg gets initialized with population size of 150, 2 inputs and 1 ou
 
         THEN("It learns it well")
         {
-            int generations = 200;
+            int generations = 1000;
             for(int gen = 0; gen < generations && !solved; ++gen)
             {
                 std::vector<double> fitnesses{};

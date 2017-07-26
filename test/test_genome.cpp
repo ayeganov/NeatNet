@@ -157,7 +157,7 @@ SCENARIO("A neuron is added to a genome", "[AddNeuron]")
             THEN("Genome gains an extra neuron, and 2 links")
             {
                 REQUIRE(g.NumNeurons() == 5);
-                REQUIRE(g.NumLinks() == 5); // 2 links because the old link
+                REQUIRE(g.NumLinks() == 5); // +2 links because the old link
                                             // get disabled, and not removed.
                 int num_disabled = 0;
                 for(auto& link : g.NeuronLinks())
@@ -188,7 +188,7 @@ SCENARIO("A neuron is added to a genome", "[AddNeuron]")
 
             THEN("All neuron ID's follow a natural sequence")
             {
-                range(1, g.NumNeurons()) >> zip_with(from(g.NeuronGenes()))
+                range(0, g.NumNeurons()) >> zip_with(from(g.NeuronGenes()))
                     >> for_each([](std::pair<int, neat::NeuronGene> p)
                     {
                         REQUIRE(neat::NeuronID(p.first) == p.second.ID);
@@ -308,22 +308,22 @@ SCENARIO("Genomes get crossed over", "[Crossover]")
 
         WHEN("Genomes are mutated in the way they are defined in the paper")
         {
-            neat::LinkGene* two_to_four = dad.FindLinkConnectingNeurons(2, 4);
-            REQUIRE(two_to_four != nullptr);
+            neat::LinkGene* one_to_three = dad.FindLinkConnectingNeurons(1, 3);
+            REQUIRE(one_to_three != nullptr);
 
-            dad.AddNeuronToLink(*two_to_four, inno_db);
+            dad.AddNeuronToLink(*one_to_three, inno_db);
 
             neat::Genome mom(2, dad.NeuronGenes(), dad.NeuronLinks(), 2, 1, &p);
 
-            neat::LinkGene* five_to_four = mom.FindLinkConnectingNeurons(5, 4);
-            REQUIRE(five_to_four != nullptr);
+            neat::LinkGene* four_to_three = mom.FindLinkConnectingNeurons(4, 3);
+            REQUIRE(four_to_three != nullptr);
 
-            mom.AddNeuronToLink(*five_to_four, inno_db);
+            mom.AddNeuronToLink(*four_to_three, inno_db);
 
-            dad.ConnectNeurons(1, 5, inno_db);
+            dad.ConnectNeurons(0, 4, inno_db);
 
-            mom.ConnectNeurons(3, 5, inno_db);
-            mom.ConnectNeurons(1, 6, inno_db);
+            mom.ConnectNeurons(2, 4, inno_db);
+            mom.ConnectNeurons(0, 5, inno_db);
 
             // Set fitness to prefer mom's genes over dad's
             dad.SetFitness(1.0);
@@ -389,7 +389,7 @@ SCENARIO("Compatibility is calculated between genomes", "[CalculateDifferenceSco
 
         WHEN("Their compatibility is calculated")
         {
-            double score = g1.CalculateCompatabilityScore(g2);
+            double score = g1.CalculateDifferenceScore(g2);
 
             THEN("It is not equal to 0")
             {
