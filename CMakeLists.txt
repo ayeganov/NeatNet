@@ -6,9 +6,19 @@ add_definitions(-std=c++14)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
 # Build the library
-set(SRC_FILES src/genalg.cpp src/genome.cpp src/netvisualize.cpp src/phenotype.cpp src/species.cpp src/genes.cpp src/innovation.cpp src/params.cpp src/serialize.cpp)
+if(${NO_OPENCV})
+    message("Not building visualization of the library")
+    set(SRC_VISUAL "")
+    set(INCLUDE_VISUAL "")
+else()
+    message("Building with OpenCV and visualization of network functionality")
+    set(SRC_VISUAL src/netvisualize.cpp)
+    set(INCLUDE_VISUAL include/netvisualize.h)
+endif()
 
-set(INCLUDE_FILES include/genalg.h include/genome.h include/json.hpp include/params.h include/serialize.h include/utils.h include/genes.h include/innovation.h include/netvisualize.h include/phenotype.h include/species.h)
+set(SRC_FILES src/genalg.cpp src/genome.cpp ${SRC_VISUAL} src/phenotype.cpp src/species.cpp src/genes.cpp src/innovation.cpp src/params.cpp src/serialize.cpp)
+
+set(INCLUDE_FILES include/genalg.h include/genome.h include/json.hpp include/params.h include/serialize.h include/utils.h include/genes.h include/innovation.h ${INCLUDE_VISUAL} include/phenotype.h include/species.h)
 
 enable_testing()
 add_subdirectory(test)
