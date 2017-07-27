@@ -24,7 +24,7 @@ SCENARIO("InnovationDB AddNewInnovation [innovation]")
         {
             neat::NeuronID from_id = 1;
             neat::NeuronID to_id = 2;
-            neat::InnovationID innovation_id = 1;
+            neat::InnovationID innovation_id = 0;
             inno_db.AddLinkInnovation(from_id, to_id);
             auto result = cpplinq::from(inno_db.Innovations())
                 >> cpplinq::first_or_default();
