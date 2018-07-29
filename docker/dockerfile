@@ -1,0 +1,99 @@
+FROM ubuntu:16.04
+
+LABEL neatnet.version="1.0.0-beta" \
+      vendor="Aleks Yeganov"
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    checkinstall \
+    cmake \
+    pkg-config \
+    yasm \
+    git \
+    gfortran \
+    libjpeg8-dev \
+    libjasper-dev \
+    libpng12-dev \
+    libtiff5-dev \
+    libavcodec-dev libavformat-dev libswscale-dev libdc1394-22-dev \
+    libxine2-dev libv4l-dev \
+    libgstreamer0.10-dev libgstreamer-plugins-base0.10-dev \
+    qt5-default libgtk2.0-dev libtbb-dev \
+    libatlas-base-dev \
+    libfaac-dev libmp3lame-dev libtheora-dev \
+    libvorbis-dev libxvidcore-dev \
+    libopencore-amrnb-dev libopencore-amrwb-dev \
+    x264 v4l-utils \
+    libprotobuf-dev protobuf-compiler \
+    libgoogle-glog-dev libgflags-dev \
+    libgphoto2-dev libeigen3-dev libhdf5-dev doxygen \
+    sudo
+
+
+# install vim 8
+#RUN add-apt-repository -y ppa:jonathonf/vim
+#RUN apt-get update
+#RUN apt-get install vim
+
+# install pyenv
+#RUN curl -L https://github.com/pyenv/pyenv-installer/raw/master/bin/pyenv-installer | bash
+#RUN pyenv update
+
+RUN apt-get install -y python-dev python-pip python3-dev python3-pip
+RUN pip2 install -U pip numpy
+RUN pip3 install -U pip numpy
+
+
+# Install virtual environment
+#RUN pip2 install virtualenv virtualenvwrapper
+#RUN pip3 install virtualenv virtualenvwrapper
+#RUN echo "# Virtual Environment Wrapper"  >> ~/.bashrc
+#RUN echo "source /usr/local/bin/virtualenvwrapper.sh" >> ~/.bashrc
+#RUN /bin/bash -c "source ~/.bashrc && mkvirtualenv facecourse-py2 -p python2 && workon facecourse-py2"
+
+############ For Python 2 ############
+# create virtual environment
+#RUN /bin/bash -c "mkvirtualenv facecourse-py2 -p python2"
+#RUN /bin/bash -c "workon facecourse-py2"
+
+# now install python libraries within this virtual environment
+RUN pip install numpy scipy matplotlib scikit-image scikit-learn ipython
+
+# quit virtual environment
+#RUN deactivate
+######################################
+
+############ For Python 3 ############
+# create virtual environment
+#RUN mkvirtualenv facecourse-py3 -p python3
+#RUN workon facecourse-py3
+
+# now install python libraries within this virtual environment
+RUN pip3 install numpy scipy matplotlib scikit-image scikit-learn ipython
+
+# quit virtual environment
+#RUN deactivate
+
+
+# Download openCV
+RUN git clone https://github.com/opencv/opencv.git
+RUN cd opencv && git checkout 3.3.1
+RUN git clone https://github.com/opencv/opencv_contrib.git
+RUN cd opencv_contrib && git checkout 3.3.1
+RUN cd opencv && mkdir build && cd build && \
+cmake -D CMAKE_BUILD_TYPE=RELEASE \
+          -D CMAKE_INSTALL_PREFIX=/usr/local \
+          -D INSTALL_C_EXAMPLES=ON \
+          -D INSTALL_PYTHON_EXAMPLES=ON \
+          -D WITH_TBB=ON \
+          -D WITH_V4L=ON \
+          -D WITH_QT=ON \
+          -D WITH_OPENGL=ON \
+          -D OPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules \
+          -D BUILD_EXAMPLES=ON .. && \
+make -j4 && \
+make install && \
+sh -c 'echo "/usr/local/lib" >> /etc/ld.so.conf.d/opencv.conf' && \
+ldconfig
