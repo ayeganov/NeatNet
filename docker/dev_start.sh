@@ -30,9 +30,7 @@ fi
 function find_device() {
     # ${1} = device pattern
     local device_list=$(find /dev -name "${1}*")
-    if [ -z "${device_list}" ]; then
-        echo "Failed to find device with pattern \"${1}\" ..."
-    else
+    if [ -n "${device_list}" ]; then
         local devices=""
         for device in $(find /dev -name "${1}"); do
             echo "Found device: ${device}."
