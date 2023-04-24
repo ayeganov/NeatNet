@@ -2,6 +2,7 @@
 #include <set>
 #include <stdexcept>
 
+#include <opencv2/imgcodecs.hpp>
 #include <opencv2/imgproc.hpp>
 
 #include "netvisualize.h"
@@ -229,6 +230,13 @@ cv::Mat visualize_net(const NeuralNet& nn, int width, int height, bool draw_inpu
 cv::Mat visualize_net(SNeuralNetPtr pnn, int width, int height, bool draw_input)
 {
     return visualize_net(*pnn.get(), width, height, draw_input);
+}
+
+
+bool visualize_to_file(std::string path, const NeuralNet& nn, int width, int height, bool draw_input)
+{
+  auto image = visualize_net(nn, width, height, draw_input);
+  return cv::imwrite(path, image);
 }
 
 

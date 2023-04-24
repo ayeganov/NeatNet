@@ -1,4 +1,5 @@
 #include <cassert>
+#include <stdexcept>
 
 #include "cpplinq.hpp"
 
@@ -45,7 +46,8 @@ std::vector<SNeuralNetPtr> GenAlg::Epoch(const std::vector<double>& fitness_scor
 {
     if(m_genomes.size() != fitness_scores.size())
     {
-        std::cerr << "Error: GenAlg::Epoch number of scores doesn't match number of genomes" << std::endl;
+//      std::cerr << "Error: GenAlg::Epoch number of scores doesn't match number of genomes" << std::endl;
+      throw std::invalid_argument("GenAlg::Epoch number of scores doesn't match number of genomes");
     }
 
     // Remove species that have not been improving for configured number of

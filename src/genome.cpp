@@ -297,27 +297,32 @@ bool Genome::AddLink(double mutation_prob,
 
 void Genome::ConnectNeurons(NeuronID neuron_id_from, NeuronID neuron_id_to, InnovationDB& innovationDB)
 {
-    auto& random = Utils::DefaultRandom::Instance();
-    auto is_recurrent_link = [&](NeuronID neuron_id1, NeuronID neuron_id2) {
-        auto& neuron1 = m_neuron_genes[GetNeuronIndex(neuron_id1)];
-        auto& neuron2 = m_neuron_genes[GetNeuronIndex(neuron_id2)];
-        return neuron_id1 == neuron_id2 || neuron1.SplitY > neuron2.SplitY;
-    };
+  auto& random = Utils::DefaultRandom::Instance();
+  auto is_recurrent_link = [&](NeuronID neuron_id1, NeuronID neuron_id2) {
+    const auto idx1 = GetNeuronIndex(neuron_id1);
+    const auto idx2 = GetNeuronIndex(neuron_id2);
 
-    InnovationID innovation_id = innovationDB.GetInnovationId(neuron_id_from, neuron_id_to, InnovationType::NEW_LINK);
-    bool is_recurrent = is_recurrent_link(neuron_id_from, neuron_id_to);
+    assert(idx1 >= 0);
+    assert(idx2 >= 0);
+    const auto& neuron1 = m_neuron_genes[idx1];
+    const auto& neuron2 = m_neuron_genes[idx2];
+    return neuron_id1 == neuron_id2 || neuron1.SplitY > neuron2.SplitY;
+  };
 
-    innovation_id = innovation_id < 0
-        ? innovationDB.AddLinkInnovation(neuron_id_from, neuron_id_to)
-        : innovation_id;
+  InnovationID innovation_id = innovationDB.GetInnovationId(neuron_id_from, neuron_id_to, InnovationType::NEW_LINK);
+  bool is_recurrent = is_recurrent_link(neuron_id_from, neuron_id_to);
 
-    LinkGene new_link(neuron_id_from,
-                     neuron_id_to,
-                     random.RandomClamped<double>(),
-                     true,
-                     innovation_id,
-                     is_recurrent);
-    m_link_genes.push_back(new_link);
+  innovation_id = innovation_id < 0
+    ? innovationDB.AddLinkInnovation(neuron_id_from, neuron_id_to)
+    : innovation_id;
+
+  LinkGene new_link(neuron_id_from,
+                    neuron_id_to,
+                    random.RandomClamped<double>(),
+                    true,
+                    innovation_id,
+                    is_recurrent);
+  m_link_genes.push_back(new_link);
 }
 
 

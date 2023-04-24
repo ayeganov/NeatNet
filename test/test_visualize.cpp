@@ -19,18 +19,20 @@ SCENARIO("Create an image of a neural network")
     {
         Utils::DefaultRandom::Instance(1);
         neat::Params p;
-        neat::Genome g(1, 3, 2, &p);
+        neat::Genome g(1, 2, 14, &p);
         neat::InnovationDB db(g.NeuronGenes(), g.NeuronLinks());
-        g.ConnectNeurons(5, 5, db);
-        g.ConnectNeurons(6, 3, db);
+        g.ConnectNeurons(5, 4, db);
+        g.ConnectNeurons(6, 2, db);
+        g.ConnectNeurons(10, 12, db);
         neat::NeuralNet nn(g);
 
         WHEN("Neural network is visualized and test image is read")
         {
             bool draw_input = true;
-            auto image = visualize_net(nn, 300, 200, draw_input);
-            cv::imwrite("new_image.png", image);
+//            auto image = visualize_net(nn, 300, 200, draw_input);
+            REQUIRE(neat::visualize_to_file("new_image.png", nn, 300, 200, draw_input));
             auto test_image = cv::imread("test_image.png");
+            auto image = cv::imread("new_image.png");
 
             THEN("The generated image is identical to the reference test image")
             {
