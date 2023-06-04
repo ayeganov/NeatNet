@@ -1,3 +1,5 @@
 build
 *.swp
 *.py[cod]
+compile_commands.json
+.cache
