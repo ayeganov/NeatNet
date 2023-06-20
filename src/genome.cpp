@@ -381,10 +381,6 @@ double Genome::CalculateDifferenceScore(const Genome& other) const
 
     while (g1 < NumLinks() || g2 < other.NumLinks())
     {
-        //get innovation numbers for each gene at this point
-        InnovationID id1 = m_link_genes[g1].InnovID;
-        InnovationID id2 = other.m_link_genes[g2].InnovID;
-
         if(g1 == NumLinks())
         {
             g2 = increase(g2, other.NumLinks());
@@ -398,6 +394,10 @@ double Genome::CalculateDifferenceScore(const Genome& other) const
             ++num_excess;
             continue;
         }
+
+        //get innovation numbers for each gene at this point
+        InnovationID id1 = m_link_genes[g1].InnovID;
+        InnovationID id2 = other.m_link_genes[g2].InnovID;
 
         //innovation numbers are identical so increase the matched score
         if (id1 == id2)

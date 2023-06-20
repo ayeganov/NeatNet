@@ -215,8 +215,8 @@ SCENARIO("A link is added to the genome", "[AddLink]")
         WHEN("AddLink is called with 0\% mutation probability")
         {
             int num_neurons = g.NumNeurons();
-            g.AddLink(0.0, 0.0, idb, 5, 5);
             int num_links = g.NumLinks();
+            g.AddLink(0.0, 0.0, idb, 5, 5);
 
             THEN("No links get added.")
             {

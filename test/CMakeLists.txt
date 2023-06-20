@@ -37,7 +37,9 @@ target_include_directories(test_serialize PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/../
 
 
 add_test(test_genome test_genome)
+enable_asan(test_genome)
 add_test(test_innovation test_innovation)
 add_test(test_xor test_xor)
+enable_asan(test_xor)
 add_test(test_serialize test_serialize)
 add_test(test_params test_params)
