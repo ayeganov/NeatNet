@@ -1,4 +1,5 @@
 #include <cassert>
+#include <iostream>
 #include <stdexcept>
 
 #include "cpplinq.hpp"
@@ -12,6 +13,23 @@ namespace neat
 
 using namespace cpplinq;
 
+template <typename T>
+std::ostream& operator<<(std::ostream& os, const std::vector<T>& v)
+{
+    os << "[";
+    for (int i = 0; i < v.size(); ++i)
+    {
+        os << v[i];
+        if (i != v.size() - 1)
+        {
+            os << ", ";
+        }
+    }
+    os << "]";
+    return os;
+}
+
+
 /**
  * IMPORTANT: Initial population of genomes is structurally identical - the
  *            only thing that is different is the weights. As a consequence the
@@ -21,19 +39,21 @@ using namespace cpplinq;
 GenAlg::GenAlg(std::size_t num_inputs,
                std::size_t num_outputs,
                const Params& params): m_generation_count(0),
-                                         m_next_genome_id(0),
-                                         m_next_species_id(0),
-                                         m_best_genomes(),
-                                         m_best_ever_fitness(0.0),
-                                         m_params(params)
+                                      m_next_genome_id(0),
+                                      m_next_species_id(0),
+                                      m_best_genomes(),
+                                      m_best_ever_fitness(0.0),
+                                      m_params(params)
 {
     m_genomes = range(0, m_params.PopulationSize()) >> select(
-        [&](int _)
+        [&](int idx)
             {
+//                std::cout << "creating genome idx: " << idx << "\n";
                 return Genome(m_next_genome_id++, num_inputs, num_outputs, &m_params);
             })
         >> to_vector();
-    Genome tmp(1, num_inputs, num_outputs, &m_params);
+//    Genome tmp(1, num_inputs, num_outputs, &m_params);
+    const auto& tmp = m_genomes[0];
     m_inno_db = InnovationDB(tmp.NeuronGenes(), tmp.NeuronLinks());
 }
 
@@ -128,6 +148,7 @@ void GenAlg::RunLongTermStatistics()
 
 void GenAlg::PurgeSpecies()
 {
+//  std::cout << "Purging species\n";
     auto current_species = m_species.begin();
     auto num_gens_allowed_no_improv = m_params.NumGensAllowedNoImprov();
     while(current_species != m_species.end())
@@ -148,16 +169,24 @@ void GenAlg::PurgeSpecies()
 
 void GenAlg::UpdateGenomeScores(const std::vector<double>& fitness_scores)
 {
+//    std::cout << "Updating genome scores" << "\n";
+//    std::cout << fitness_scores << "\n";
     for(int i = 0; i < m_genomes.size(); ++i)
     {
         assert(fitness_scores[i] >= 0);
         m_genomes[i].SetFitness(fitness_scores[i]);
+//        std::cout << "genome " << m_genomes[i].ID() << " fitness: " << fitness_scores[i] << "\n";
     }
     std::sort(m_genomes.begin(), m_genomes.end());
+    for(auto& g : m_genomes)
+    {
+//      std::cout << to_string(g) << '\n';
+    }
 }
 
 void GenAlg::UpdateBestGenomes()
 {
+//    std::cout << "Updating best genomes\n";
     m_best_genomes.clear();
     m_best_ever_fitness = std::max(m_best_ever_fitness, m_genomes[0].Fitness());
 
@@ -165,11 +194,13 @@ void GenAlg::UpdateBestGenomes()
     for(int i = 0; i < num_best_genomes; ++i)
     {
         m_best_genomes.push_back(m_genomes[i]);
+//        std::cout << to_string(m_genomes[i]) << "\n";
     }
 }
 
 void GenAlg::SpeciateGenomes()
 {
+//  std::cout << "Speciating genomes\n";
     bool added = false;
     auto compatibility_threshold = m_params.CompatibilityThreshold();
     for(auto& genome : m_genomes)
@@ -194,10 +225,16 @@ void GenAlg::SpeciateGenomes()
         }
         added = false;
     }
+
+//    for(const auto& s : m_species)
+//    {
+//      std::cout << to_string(s) << '\n';
+//    }
 }
 
 void GenAlg::UpdateSpeciesFitness()
 {
+//  std::cout << "Updating species fitness\n";
     for(auto& s : m_species)
     {
         s.AdjustFitness();
@@ -212,6 +249,7 @@ void GenAlg::UpdateSpeciesFitness()
  */
 void GenAlg::CalculateSpeciesSpawnAmounts()
 {
+//  std::cout << "calculate species spawn amounts\n";
     Utils::RunningStat rs;
     from(m_genomes) >> for_each( [&rs](const Genome g) { rs.Push(g.GetAdjustedFitness()); });
 
@@ -224,6 +262,7 @@ void GenAlg::CalculateSpeciesSpawnAmounts()
     for(auto& s : m_species)
     {
         s.CalculateSpawnAmount();
+//        std::cout << "species " << s.ID() << " spawn amount: " << s.SpawnsRequired() << "\n";
     }
 }
 
@@ -239,6 +278,7 @@ void GenAlg::CalculateSpeciesSpawnAmounts()
  */
 std::vector<Genome> GenAlg::CreateNewPopulation()
 {
+//  std::cout << "Create new population\n";
     std::vector<Genome> new_pop;
     auto population_size = m_params.PopulationSize();
 
@@ -246,6 +286,7 @@ std::vector<Genome> GenAlg::CreateNewPopulation()
     auto total_num_spawned = new_pop.size();
     for(auto& species : m_species)
     {
+//      std::cout << "species " << species.ID() << "\n";
         // break out if the population is large enough
         if(total_num_spawned >= population_size) break;
 
@@ -255,6 +296,7 @@ std::vector<Genome> GenAlg::CreateNewPopulation()
         {
             if(!leader_taken)
             {
+//              std::cout << "\ttaking leader\n";
                 baby = species.Leader();
                 leader_taken = true;
             }
@@ -262,11 +304,13 @@ std::vector<Genome> GenAlg::CreateNewPopulation()
             {
                 if(species.Size() == 1)
                 {
+//                  std::cout << "\tone member species\n";
                     baby = *species.Spawn();
                     baby.SetID(m_next_genome_id++);
                 }
                 else if(species.Size() > 1)
                 {
+//                  std::cout << "\tcrossing over\n";
                     baby = MakeCrossoverBaby(species, m_next_genome_id++, baby);
                 }
                 else
@@ -296,6 +340,7 @@ std::vector<Genome> GenAlg::CreateNewPopulation()
             }
             baby.SortLinks();
 
+//            std::cout << "\tbaby: " << to_string(baby) << "\n";
             new_pop.push_back(baby);
             ++total_num_spawned;
 
@@ -306,6 +351,7 @@ std::vector<Genome> GenAlg::CreateNewPopulation()
         }
     }
 
+//    std::cout << "new pop size: " << new_pop.size() << ", needed size: " << population_size << "\n";
     if(new_pop.size() < population_size)
     {
         auto rqrd = population_size - new_pop.size();
@@ -320,11 +366,14 @@ std::vector<Genome> GenAlg::CreateNewPopulation()
 
 Genome GenAlg::MakeCrossoverBaby(Species& species, GenomeID next_id, Genome& prev_baby)
 {
+    auto& random = Utils::DefaultRandom::Instance();
+    const auto prob = random.RandomDouble();
+//    std::cout << "species id " << species.ID() << ", crossover prob: " << prob << "\n";
+
     Genome baby;
     Genome* mom = species.Spawn();
-    auto& random = Utils::DefaultRandom::Instance();
 
-    if(random.RandomDouble() < m_params.CrossoverChance())
+    if(prob < m_params.CrossoverChance())
     {
         // find dad
         int num_attempts = 5;
@@ -363,6 +412,7 @@ Genome GenAlg::TournamentSelect(int num_battles)
     for(int b = 0; b < num_battles; b++)
     {
         int contender = random.RandomClamped(lower, upper);
+//        std::cout << "contender: " << contender << "\n";
         if(m_genomes[contender].Fitness() > best_fitness_so_far)
         {
             chosen_one = contender;

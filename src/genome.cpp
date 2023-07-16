@@ -1,4 +1,5 @@
 #include <cassert>
+#include <iostream>
 #include <set>
 
 #include "cpplinq.hpp"
@@ -46,11 +47,14 @@ Genome::Genome(GenomeID id, std::size_t inputs, std::size_t outputs, Params* par
     InnovationID innovation_id = NumNeurons();
     for(int i = 0; i < inputs + 1; ++i)
     {
+//        std::cout << "input idx: " << i << "\n";
         for(int j = 0; j < outputs; ++j)
         {
+          const auto weight = random.RandomClamped(-1.0, 1.0);
+//          std::cout << "from scratch weight: " << weight << "\n";
             m_link_genes.push_back(LinkGene(m_neuron_genes[i].ID,
                                             m_neuron_genes[inputs + j + 1].ID,
-                                            random.RandomClamped(-1.0, 1.0),
+                                            weight,
                                             true,
                                             innovation_id++));
         }
@@ -82,7 +86,11 @@ bool Genome::AddNeuron(double mutation_prob,
                        int num_trys_to_find_old_link)
 {
     Utils::DefaultRandom& random = Utils::DefaultRandom::Instance();
-    if(random.RandomDouble() > mutation_prob)
+    const auto prob = random.RandomDouble();
+
+//    std::cout << "add neuron prob: " << prob << "\n";
+
+    if(prob > mutation_prob)
     {
         return false;
     }
@@ -90,6 +98,7 @@ bool Genome::AddNeuron(double mutation_prob,
     auto find_link_idx = [&](int upper_bound)
     {
         int link_idx = random.RandomClamped(0, upper_bound);
+//        std::cout << "find link idx: " << link_idx << "\n";
         const LinkGene& link = m_link_genes[link_idx];
         const NeuronGene& neuron = m_neuron_genes[GetNeuronIndex(link.FromNeuronID)];
         if(link.IsEnabled &&
@@ -272,7 +281,9 @@ bool Genome::AddLink(double mutation_prob,
                      int num_trys_add_link)
 {
     auto& random = Utils::DefaultRandom::Instance();
-    if(random.RandomDouble() > mutation_prob)
+    const auto prob = random.RandomDouble();
+//    std::cout << "add link prob: " << prob << "\n";
+    if(prob > mutation_prob)
     {
         return false;
     }
@@ -298,6 +309,7 @@ bool Genome::AddLink(double mutation_prob,
 void Genome::ConnectNeurons(NeuronID neuron_id_from, NeuronID neuron_id_to, InnovationDB& innovationDB)
 {
   auto& random = Utils::DefaultRandom::Instance();
+
   auto is_recurrent_link = [&](NeuronID neuron_id1, NeuronID neuron_id2) {
     const auto idx1 = GetNeuronIndex(neuron_id1);
     const auto idx2 = GetNeuronIndex(neuron_id2);
@@ -316,9 +328,12 @@ void Genome::ConnectNeurons(NeuronID neuron_id_from, NeuronID neuron_id_to, Inno
     ? innovationDB.AddLinkInnovation(neuron_id_from, neuron_id_to)
     : innovation_id;
 
+  const auto new_link_weight = random.RandomClamped<double>();
+//  std::cout << "new link weight: " << new_link_weight << "\n";
+
   LinkGene new_link(neuron_id_from,
                     neuron_id_to,
-                    random.RandomClamped<double>(),
+                    new_link_weight,
                     true,
                     innovation_id,
                     is_recurrent);
@@ -331,15 +346,22 @@ void Genome::MutateWeights(double mutation_prob, double prob_new_weight, double 
     auto& random = Utils::DefaultRandom::Instance();
     for(auto& link_gene : m_link_genes)
     {
-        if(random.RandomDouble() < mutation_prob)
+        const auto prob = random.RandomDouble();
+//        std::cout << "mutate weight prob: " << prob << "\n";
+
+        if(prob < mutation_prob)
         {
-            if(random.RandomDouble() < prob_new_weight)
+            const auto prob = random.RandomDouble();
+//            std::cout << "new weight prob: " << prob << "\n";
+            if(prob < prob_new_weight)
             {
                 link_gene.Weight = random.RandomClamped(-1.0, 1.0);
+//                std::cout << "new weight: " << link_gene.Weight << "\n";
             }
             else
             {
                 double perturbation = random.RandomClamped(-1.0, 1.0) * max_perturbation;
+//                std::cout << "weight perturbation: " << perturbation << "\n";
                 link_gene.Weight += perturbation;
             }
         }
@@ -352,9 +374,12 @@ void Genome::MutateActivationResponse(double mutation_prob, double max_perturbat
     auto& random = Utils::DefaultRandom::Instance();
     for(auto& neuron_gene : m_neuron_genes)
     {
-        if(random.RandomDouble() < mutation_prob)
+        const auto prob = random.RandomDouble();
+//        std::cout << "mutate act resp prob: " << prob << "\n";
+        if(prob < mutation_prob)
         {
             neuron_gene.ActivationResponse += random.RandomClamped(-1.0, 1.0) * max_perturbation;
+//            std::cout << "new activation response: " << neuron_gene.ActivationResponse << "\n";
         }
     }
 }
@@ -451,6 +476,7 @@ Genome Genome::Crossover(const Genome& mom, const InnovationDB& inno_db, GenomeI
         if(mom.NumLinks() == dad.NumLinks())
         {
             best = (PARENT_TYPE)random.RandomClamped(0, 1);
+//            std::cout << "chosen parent: " << best << "\n";
         }
         else
         {
@@ -519,7 +545,9 @@ Genome Genome::Crossover(const Genome& mom, const InnovationDB& inno_db, GenomeI
         // match up, so pick one randomly and advance BOTH forward
         else if(current_dad->InnovID == current_mom->InnovID)
         {
-            if(random.CoinFlip())
+            const auto coin_flip = random.CoinFlip();
+//            std::cout << "coin flip: " << coin_flip << "\n";
+            if(coin_flip)
             {
                 selected_gene = &(*current_mom);
             }
@@ -577,14 +605,14 @@ std::string to_string(const Genome& genome)
     result = "ID: " + to_string(genome.ID()) + " ";
     for(auto& ng : genome.NeuronGenes())
     {
-        result += to_string(ng.Type) + ", ";
+        result += to_string(ng.Type) + ":" + to_string(ng.ID) + ", ";
     }
     return std::move(result);
 }
 
 
 //========================================== PRIVATE METHODS ===============================
-bool Genome::FindNonRecurrentNeuron(NeuronID& neuron_id_from, NeuronID& neuron_id_to, double prob, int num_trys)
+bool Genome::FindNonRecurrentNeuron(NeuronID& neuron_id_from, NeuronID& neuron_id_to, double prob_limit, int num_trys)
 {
     auto& random = Utils::DefaultRandom::Instance();
     bool result = false;
@@ -595,12 +623,15 @@ bool Genome::FindNonRecurrentNeuron(NeuronID& neuron_id_from, NeuronID& neuron_i
                && neuron.Type != NeuronType::INPUT;
     };
 
-    if(random.RandomDouble() < prob)
+    const auto prob = random.RandomDouble();
+//    std::cout << "non recurrent neuron prob: " << prob << "\n";
+    if(prob < prob_limit)
     {
         while(num_trys--)
         {
             // get random neuron
             int neuron_idx = random.RandomClamped(m_num_inputs+1, m_neuron_genes.size()-1);
+//            std::cout << "neuron idx: " << neuron_idx << "\n";
             auto& neuron = m_neuron_genes[neuron_idx];
 
             if(is_acceptable(neuron))
@@ -633,6 +664,7 @@ bool Genome::FindUnlinkedNeurons(NeuronID& neuron_id_from, NeuronID& neuron_id_t
         int from_idx = random.RandomClamped((std::size_t)0, m_neuron_genes.size()-1);
         // can't link back to input neurons, so skipping them in idx generation
         int to_idx = random.RandomClamped(m_num_inputs+1, m_neuron_genes.size()-1);
+//        std::cout << "Unlinked neurons from idx " << from_idx << ", to idx " << to_idx << "\n";
 
         auto& neuron_from = m_neuron_genes[from_idx];
         auto& neuron_to = m_neuron_genes[to_idx];

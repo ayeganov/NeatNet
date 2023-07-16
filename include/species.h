@@ -56,7 +56,10 @@ public:
     std::size_t Size() const { return m_members.size(); }
 
     SpeciesID ID() const { return m_id; }
+    friend std::string to_string(const Species& s);
 };
+
+
 
 }
 #endif

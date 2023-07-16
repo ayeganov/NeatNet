@@ -1,3 +1,6 @@
+#include "serialize.h"
+#include <iomanip>
+#include <ios>
 #define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 
@@ -33,6 +36,14 @@ double xor_fitness(neat::SNeuralNetPtr brain)
 
 SCENARIO("GenAlg gets initialized with population size of 40, 2 inputs and 1 output.", "[genalg]")
 {
+    std::cout << std::setprecision(15) << std::boolalpha << std::fixed;
+//    auto& ran = Utils::DefaultRandom::Instance(5);
+
+//    for(int i = 0; i < 5; ++i)
+//    {
+//      std::cout << i << " = " << ran.RandomDouble() << '\n';
+//    }
+
     GIVEN("A task of learning a XOR function")
     {
         neat::Params p("xor_params.json");
@@ -54,6 +65,9 @@ SCENARIO("GenAlg gets initialized with population size of 40, 2 inputs and 1 out
 
                     if(solved)
                     {
+                      std::cout << to_string(ga.BestGenome()) << std::endl;
+                      neat::serialize_to_file("/tmp/xor_winner.json", *brain);
+
                         auto stats = ga.SpeciesStats();
                         std::cout << "Species size " << "Mean: " << stats.Mean() << ", Max: " << stats.MaxValue() << ", Min: " << stats.MinValue() << std::endl;
                         std::cout << "Generation: " << ga.Generation() << ", Species size: " << ga.GetSpecies().size() << std::endl;
@@ -61,6 +75,19 @@ SCENARIO("GenAlg gets initialized with population size of 40, 2 inputs and 1 out
                     }
                 }
                 brains = ga.Epoch(fitnesses);
+//                std::cout << "best ever fitness: " << ga.BestEverFitness() << "\n";
+                auto stats = ga.SpeciesStats();
+//                std::cout << "Species size " << "Mean: " << stats.Mean() << ", Max: " << stats.MaxValue() << ", Min: " << stats.MinValue() << std::endl;
+
+//                auto stats = ga.SpeciesStats();
+//                std::cout << "Species size " << "Mean: " << stats.Mean() << ", Max: " << stats.MaxValue() << ", Min: " << stats.MinValue() << std::endl;
+//                std::cout << "Generation: " << ga.Generation() << ", Species size: " << ga.GetSpecies().size()
+//                          << ", Best seen fitness: " << ga.BestEverFitness() << std::endl;
+//                if(gen == 100)
+//                {
+//                  solved = true;
+//                  break;
+//                }
             }
 done:
             REQUIRE(solved);

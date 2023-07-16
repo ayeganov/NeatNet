@@ -1,4 +1,5 @@
 #include <cassert>
+#include <iostream>
 
 #include "cpplinq.hpp"
 #include "species.h"
@@ -56,6 +57,7 @@ void Species::AdjustFitness()
 
         assert(shared_fitness >= 0);
         genome->SetAjustedFitness(shared_fitness);
+//        std::cout << "genome " << genome->ID() << " adjusted fitness: " << shared_fitness << "\n";
     }
 }
 
@@ -82,11 +84,23 @@ Genome* Species::Spawn()
     {
         int max_idx = m_members.size() * m_params->SurvivalRate() + 1;
         int the_one = random.RandomClamped(0, max_idx);
+//        std::cout << "the one: " << the_one << "\n";
         return m_members[the_one];
     }
+}
+
+std::string to_string(const Species& s)
+{
+  auto out = std::to_string(s.ID()) + ": ";
+  for(int i = 0; i < s.m_members.size(); ++i)
+  {
+    auto& member = s.m_members[i];
+    out += std::to_string(member->ID()) + (i < s.m_members.size() - 1 ? ", " : "");
+  }
+  return out;
 }
 
 //=============================PRIVATE METHODS=================================
 
 
-};
+}
