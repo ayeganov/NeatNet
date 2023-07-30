@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.5)
 project(NeatNet)
 
-add_definitions(-std=c++17)
+add_definitions(-std=c++20)
 
 function(enable_asan TARGET)
   target_compile_options(${TARGET} PRIVATE
     -fsanitize=address
     -fno-omit-frame-pointer
-    -O1
+    -O0
     -g
   )
   target_link_options(${TARGET} PRIVATE

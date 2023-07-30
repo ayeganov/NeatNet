@@ -181,7 +181,7 @@ SCENARIO("A neuron is added to a genome", "[AddNeuron]")
                 {
                     for(auto id : input_bias_ids)
                     {
-                        REQUIRE(lg.ToNeuronID != id);
+                        REQUIRE(lg.ToNeuronID != neat::NeuronID(id.raw_value()));
                     }
                 }
             }

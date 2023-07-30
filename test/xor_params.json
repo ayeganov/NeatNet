@@ -19,7 +19,7 @@
     "NumGensAllowedNoImprovement": 15,
     "OldAgePenalty": 0.7,
     "OldAgeThreshold": 50,
-    "PopulationSize": 40,
+    "PopulationSize": 50,
     "SurvivalRate": 0.2,
     "WeightReplacedProbability": 0.1,
     "YoungBonusAgeThreshhold": 10,

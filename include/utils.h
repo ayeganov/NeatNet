@@ -2,11 +2,14 @@
 #define __UTILS_H__
 
 #include <chrono>
+#include <concepts>
 #include <fstream>
 #include <memory>
 #include <random>
+#include <ranges>
 #include <stdexcept>
 #include <type_traits>
+
 
 namespace Utils
 {
@@ -81,8 +84,13 @@ using SharedRandom = std::shared_ptr<Random<TEngine>>;
 template <typename T, typename Meaning>
 class IDType
 {
+private:
+    T m_id;
+
 public:
     IDType() {}
+
+    T raw_value() { return m_id; }
 
     // implicit conversion
     IDType(T value) : m_id(value) {}
@@ -158,9 +166,6 @@ public:
         operator++();
         return tmp;
     }
-
-private:
-    T m_id;
 };
 
 
@@ -305,5 +310,31 @@ static bool is_file_exist(std::string path)
 }
 
 
+template<typename T>
+concept NotAString = !std::same_as<T, std::string> && !std::same_as<T, const char*>;
+
+
+template<typename T>
+concept PrintableRange = NotAString<T> && std::ranges::range<T> && requires(std::ostream& os, const T& t) {
+  { os << *t.begin() } -> std::same_as<std::ostream&>;
+};
+
+
 }
+
+template<Utils::PrintableRange T>
+std::ostream& operator<<(std::ostream& os, const T& container)
+{
+  auto it = std::ranges::begin(container);
+  if (it != std::ranges::end(container)) {
+      os << *it;
+      ++it;
+  }
+  for (; it != std::ranges::end(container); ++it) {
+      os << ", " << *it;
+  }
+  return os;
+}
+
+
 #endif
